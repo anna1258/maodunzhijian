@@ -49,3 +49,34 @@ sudo useradd joker，sudo passwd  joker，
 grep 是 “global regular expression print” 的缩写，用于文本搜索和筛选。
 echo 是英文单词“回声”，用来输出内容。
 hello.sh它告诉系统在当前的 PATH 环境变量中查找名为 hello.sh 的可执行文件。./hello.sh 是一个带路径的命令。它告诉系统在当前目录下查找名为 hello.sh 的可执行文件。./ 表示当前目录。
+tar -cvf test_archive.tar test_dir，tar命令是打包，类似于把文件放在同一个箱子里。-c(create)
+tar -xzvf test_combined.tar.gz -C extracted，将 test_combined.tar.gz 文件里的内容提取到新建的 extracted 目录中。-x(extract)解包
+tar -tvf test_archive.tar。列出test_archive.tar下所有文件的详细信息，-t(list),-v(verbose),-f(follow)
+drwxrwxr-x labex/labex       0 2025-06-10 10:04 test_dir/
+man tar 是在 Linux/Unix 系统下查看 tar 命令的帮助文档的命令。
+gzip test_archive.tar，test_archive.tar 会被压缩为 test_archive.tar.gz 文件。原始的 test_archive.tar 文件会被删除，仅保留压缩后的 test_archive.tar.gz 文件。
+zip -r test_archive.zip test_dir和zip  test_archive.zip test_dir的区别，后面只压缩目录，-r（recursive）会把目录下所有文件压缩。unzip -d unzipped_files test_archive.zip，unzip解压。-d(directory)
+df，diskfree，df -h /dev，du ~，diskusage，df 用来看磁盘整体空间，du 用来看某个目录或文件的空间。
+虚拟磁盘virtual disk，又称虚拟硬盘，是通过软件技术在物理存储设备之上抽象出来的逻辑存储设备。它表现为一个标准的磁盘设备，具有分区、格式化、挂载等全部磁盘操作能力，但其底层数据可以存储于文件、内存、网络或其他物理介质。虚拟磁盘是用软件方法在物理存储之上模拟出来的磁盘设备，比如磁盘镜像文件（.img、.vhd）、LVM逻辑卷、RAM Disk、网络块设备等。
+操作系统把虚拟磁盘当作真实磁盘对待，可以进行分区、格式化、挂载等所有操作。
+文件系统 ：将文件系统视为文件和文件夹在磁盘上的组织方式。它就像办公室中的归档系统 - 它决定了数据的存储和检索方式。常见的 Linux 文件系统包括 ext4（我们将使用）、XFS 和 btrfs。
+挂载 ：挂载是使作系统可以访问文件系统的过程。当你挂载一个文件系统时，你是在告诉 Linux “使这个磁盘的内容在这个特定目录中可用”。
+分区 ：分区是磁盘中被视为单独单元的部分。可以将其视为将一个大硬盘驱动器划分为更小的独立部分。分区是指把一块物理磁盘（如 /dev/nvme0n1）或虚拟磁盘划分成若干个逻辑区域，每个分区可以单独格式化、挂载和管理。分区让一个磁盘可以被操作系统识别为多个“逻辑磁盘”，比如 /dev/nvme0n1p1、/dev/nvme0n1p2 等。
+创建使用虚拟磁盘：
+# 创建一个1GB的空镜像文件
+dd if=/dev/zero of=virtual.img bs=1M count=256
+# 格式化为 ext4 文件系统
+sudo mkfs.ext4 virtual.img
+# 新建/mnt/virtualdisk目录文件作为挂载点
+sudo mkdir /mnt/virtualdisk
+# 进行挂载
+sudo mount -o loop virtual.img /mnt/virtualdisk
+# 卸载虚拟磁盘
+sudo umount /mnt/virtualdisk
+which cowsay && cowsay "Hello, LabEx" || echo "cowsay is not installed"，&& 是一个逻辑 AND 运算符，只有在前一个命令成功时才执行下一个命令。|| 是一个逻辑 OR 运算符，仅当上一个命令失败时，它才执行下一个命令。
+grep "PATH" ~/.zshrc | grep "HOME"只查找同时包含 "PATH" 和 "HOME" 的行。grep "PATH" ~/.zshrc && grep "HOME" ~/.zshrc查找包含 "PATH" 的行然后查找包含 "HOME" 的行。
+tr translate命令用于字符转换、删除和压缩，只能处理标准输入，不能直接处理文件，需配合重定向或管道使用。只支持字符级别操作，不支持正则表达式。
+realpath path_analysis.sh，顾名思义，查看一个文件的绝对路径。
+Bash 脚本：:在终端中，使用 bash script.sh 或 ./script.sh（需要先给脚本可执行权限，chmod +x script.sh）。
+PowerShell 脚本：:在PowerShell 中，使用 .\script.ps1 或 C:\Path\To\Script\script.ps1。
+Python 脚本：:在终端中，使用 python script.py
