@@ -24,7 +24,7 @@ more
 more 的功能较为基础，现代系统更推荐使用 less 命令（支持前后滚动、搜索、跳转等）。
 示例：less large_log.txt（按 ↑/↓ 滚动，/keyword 搜索，q 退出）。
 pwd 是 "print working directory" 的缩写
- whereis 命令。该命令用于定位指定命令的二进制文件、源代码和手册页文件。
+whereis 命令。该命令用于定位指定命令的二进制文件、源代码和手册页文件。
 find . -name "a.txt" .表示当前目录，find . -name "*.txt" -exec cat {} \;
 which 
 grep "ERROR" logs/server.log , grep "2023-[0-9][0-9]-[0-9][0-9]" logs/server.log
@@ -42,9 +42,10 @@ top 查看系统进程，cpu，内存等信息
 free 系统内存使用情况概览
 df 所有已挂载文件系统的快速快照
 chmod +x，这里的x是execute，chmod：change mode更改文件/目录的权限模式，sudo：superuser do以超级用户身份执行命令，chown：change owner更改文件/目录的所有者和所属组
-Shell 是操作系统的“壳”，它是用户与操作系统内核（Kernel）之间的桥梁。简单来说，Shell就是一个命令解释器，用户输入命令后，Shell会翻译并传递给操作系统去执行，然后把结果返回给用户。常见的Shell有：bash（最常用）、sh、zsh、csh等。export命令的作用就是把变量变成环境变量，从而让它能被子进程继承使用，这也是shell变量和环境变量的最重要区别。
+Shell 是操作系统的“壳”，它是用户与操作系统内核（Kernel）之间的桥梁。简单来说，Shell就是一个命令解释器，用户输入命令后，Shell会翻译并传递给操作系统去执行，然后把结果返回给用户。常见的Shell有：bash（最常用）、sh、zsh、csh等。export命令的作用就是把变量变成环境变量，从而让它能被子进程继承使用，这也是shell变量和环境变量的最重要区别。shell变量只在本进程中生效，而环境变量在所有进程中生效。
 sudo useradd joker，sudo passwd  joker，
 /etc/passwd：存储用户基本账号信息，不含真实密码。普通用户可见，内容：用户名:密码占位符:用户ID:组ID:描述:主目录:登录Shell。/etc/shadow：存储用户的加密密码和密码相关策略，只有 root 能查看。内容：用户名:加密密码:上次修改日期:最小间隔:最大间隔:警告期:禁用期:过期日期:保留。
 把用户加入 sudo 组，是为了让该用户可以用 sudo 临时获得管理员权限。
 grep 是 “global regular expression print” 的缩写，用于文本搜索和筛选。
 echo 是英文单词“回声”，用来输出内容。
+hello.sh它告诉系统在当前的 PATH 环境变量中查找名为 hello.sh 的可执行文件。./hello.sh 是一个带路径的命令。它告诉系统在当前目录下查找名为 hello.sh 的可执行文件。./ 表示当前目录。
