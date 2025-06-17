@@ -25,13 +25,13 @@ more 的功能较为基础，现代系统更推荐使用 less 命令（支持前
 示例：less large_log.txt（按 ↑/↓ 滚动，/keyword 搜索，q 退出）。
 pwd 是 "print working directory" 的缩写
 whereis 命令。该命令用于定位指定命令的二进制文件、源代码和手册页文件。
-find . -name "a.txt" .表示当前目录，find . -name "*.txt" -exec cat {} \;
-which 
+find . -name "a.txt" .表示当前目录，find . -name "*.txt" -exec cat {} \; find / -perm -4000 -exec ls -l {} \;
+which 在path中查找路径
 grep "ERROR" logs/server.log , grep "2023-[0-9][0-9]-[0-9][0-9]" logs/server.log
 wc -l requirements.txt，word count，-l 是 "line" 的缩写。统计行数
 cut -d ',' -f 2 customers.txt，-d 是 delimiter 的缩写，表示字段分隔符。-f 是 field 的缩写，表示要提取的字段。
 head -n +2 会输出文件中的前两行内容，tail -n +2 会输出文件中从第二行到最后一行的所有内容。
-sort文件内容排序，uniq文件内容 去重
+sort文件内容排序，sort -nr反序排序，uniq文件内容 去重
 diff file1.txt file2.txt对比两个文件
 新建一个文件写入内容方式：1、cat > newfile.txt 命令的作用是创建一个名为 newfile.txt 的新文件，并准备接受用户输入的内容。输入完成后按 Ctrl + D 来结束输入并保存内容。2、echo "This is a file in dir1" > dir1/file.txt。如果已有file.txt，那么就会覆盖原来的内容。>> dir1/file.txt是追加。3、touch file.txt：只会创建一个空文件或更新现有文件的时间戳，不会写入任何内容。touch 命令主要用于文件的创建和时间管理，而不是用于写入内容。
 join用于两个文件的内联查询
@@ -80,3 +80,278 @@ realpath path_analysis.sh，顾名思义，查看一个文件的绝对路径。
 Bash 脚本：:在终端中，使用 bash script.sh 或 ./script.sh（需要先给脚本可执行权限，chmod +x script.sh）。
 PowerShell 脚本：:在PowerShell 中，使用 .\script.ps1 或 C:\Path\To\Script\script.ps1。
 Python 脚本：:在终端中，使用 python script.py
+重定向：echo 'hello labex' > redirect，> 符号将此输出重定向到名为 redirect 的文件。如果文件不存在，则将创建该文件。如果它已存在，则其内容将被覆盖。echo 'labex.io' >> redirect，>> 运算符类似于 >，但它不是覆盖文件，而是将新内容附加到现有文件的末尾。命令语法        是否支持多行        行为说明
+cat > 文件 << EOF ... EOF        支持多行        多行内容原样写入文件
+echo > 文件 << EOF ... EOF        不支持多行        通常只写入空行或EOF，不适合多行写入
+常见的重定向方式有输入重定向、输出重定向和错误重定向。
+输出重定向：覆盖写入（>）将命令的输出写入到指定文件，如果文件已存在，则会**覆盖原内容**。
+echo "hello world" > file.txt
+追加写入（>>）将命令的输出**追加**到指定文件末尾，不会覆盖原有内容。
+echo "hello again" >> file.txt
+输入重定向：标准输入重定向（<）将文件的内容作为命令的输入。
+wc -l < file.txt   # 统计 file.txt 的行数
+错误输出重定向：错误输出覆盖写入（2>）将命令的错误信息写入到指定文件（覆盖方式）。
+ls not_exist_file 2> error.log
+错误输出追加写入（2>>）将错误信息追加到文件末尾。
+ls not_exist_file 2>> error.log
+标准输出和错误输出同时重定向：标准输出和错误输出都写入同一个文件
+command > all.log 2>&1
+  或者
+command &> all.log
+注意：2>&1 表示将标准错误（文件描述符2）重定向到标准输出（文件描述符1）的位置。
+Here Document（多行输入重定向）：用于将多行内容输入到命令或文件中。
+cat > file.txt << EOF
+line 1
+line 2
+EOF
+ls -l > /dev/null：只丢弃正常输出，错误信息仍会显示。
+ls -l nonexistent_directory > /dev/null 2>&1：所有输出（包括错误）都丢弃，终端不会有任何显示。
+Standard Input (stdin)，这是默认输入源，通常是您的键盘。这是系统期望输入的来源。一般就是stdin。Standard Output (stdout):这是默认输出目标，通常是您的屏幕。这是系统发送正常输出的地方。Standard Error (stderr)：这是发送错误消息的地方，通常也是您的屏幕。一般stdout和stderr是一起出现的，两个都需要进行处理。
+> 覆盖输出到文件 echo hi > a.txt
+>> 追加输出到文件 echo hi >> a.txt
+< 从文件作为输入 wc -l < a.txt
+2> 错误信息覆盖输出到文件 ls nofile 2> err.txt
+2>> 错误信息追加输出到文件 ls nofile 2>> err.txt
+&> 标准输出和错误输出到文件 cmd &> all.txt
+` ` 管道符，连接两个命令
+<< EOF ... Here文档，多行输入重定向 cat > f.txt << EOF ... EOF
+
+/dev/null，通常称为“位桶”或“黑洞”，是一个特殊文件，它会丢弃写入它的所有数据。一般可以使用 /dev/null 快速清除文件内容：cat /dev/null > combined_output.log
+更新软件：sudo apt update更新包列表。sudo apt install w3m -y，在安装过程中自动对任何提示回答 “yes”。apt-cache search "text editor"在软件包描述中搜索单词 “text” 和 “editor”，sudo apt remove w3m -y，sudo apt purge w3m -y配置文件一同删除，sudo apt autoremove -y此命令将删除自动安装的包，以满足其他包的依赖关系，现在不再需要这些包。
+root:x:0:0:root:/root:/bin/bash
+字段        示例值        含义说明
+1        root        用户名（login name），这里是超级用户 root
+2        x        口令字段。x 表示密码存储在 /etc/shadow 文件中
+3        0        用户ID（UID），0 代表 root 用户
+4        0        组ID（GID），0 代表 root 组
+5        root        用户全名或描述信息
+6        /root        用户主目录（home directory）
+7        /bin/bash        用户登录后默认使用的 shell 程序
+
+shell
+#!/usr/bin/python3
+#!/bin/bash
+#!/解释器的路径
+shebang 这个名字其实是英文单词 sharp（#号的非正式叫法）和 bang（感叹号的俚语）的组合。
+
+bash hello.sh，不需要执行权限（x），需要读权限（r），由 Bash 解释器读取并执行脚本内容
+./hello.sh，需要执行权限（x），需要读权限（r），由操作系统直接执行，必须有执行权限
+~/project/hello.sh ，需要执行权限（x），需要读权限（r）           
+shell中的${}和$
+NAME="world"
+echo "hello $NAME123"    # 输出 hello 
+echo "hello ${NAME}123"  # 输出 hello world123
+Shell语法
+字符串与shell变量
+定义变量（等号两边不能有空格）：
+  NAME="honor"
+AGE=20
+引用变量：
+  echo $NAME
+echo ${AGE}
+只读变量：
+  readonly NAME
+删除变量：
+  unset AGE
+
+2. 字符串操作
+字符串长度：
+  STRING="hello"
+echo ${#STRING}      # 输出 5
+子串截取：
+  STRING="hello world"
+echo ${STRING:0:5}   # 输出 hello
+查找子串位置：
+  expr index "$STRING" o    # 返回 o 第一次出现的位置
+字符串替换：
+  STRING="hello world"
+echo ${STRING/world/bash}     # hello bash
+echo ${STRING//l/x}           # hexxo worxd（全部替换）
+删除子串：
+  STRING="abcABC123ABCabc"
+echo ${STRING#a*C}   # 删除第一次a到C之间的内容及本身，输出123ABCabc
+echo ${STRING##a*C}  # 删除最后一次a到C之间的内容及本身，输出abc
+拼接字符串：
+  STR1="hello"
+STR2="world"
+STR3="$STR1 $STR2"
+echo $STR3
+3. 数组操作
+定义数组：
+  ARRAY=(apple banana cherry)
+访问元素：
+  echo ${ARRAY[0]}     # apple
+echo ${ARRAY[1]}     # banana
+获取所有元素：
+  echo ${ARRAY[@]}     # apple banana cherry
+echo ${ARRAY[*]}     # apple banana cherry
+获取数组长度：
+  echo ${#ARRAY[@]}    # 3
+遍历数组：
+  for ITEM in "${ARRAY[@]}"; do
+    echo $ITEM
+done
+添加元素：
+  ARRAY+=(date)
+删除元素：
+  unset ARRAY[1]    # 删除第二个元素
+4. 其他常见用法
+
+变量默认值：
+  echo ${VAR:-default}  # 如果VAR为空，则输出default
+变量赋值默认值：
+  echo ${VAR:=default}  # 如果VAR为空，则赋值为default，并输出
+判断变量是否存在：
+  if [ -z "$VAR" ]; then
+    echo "VAR is empty"
+fi
+- $(( ... )) 是算术运算并返回结果；
+- (( ... )) 是只做运算，不返回结果（通常用于条件判断）。
+if-else语法
+#!/bin/bash
+
+echo "Enter the current temperature in Celsius: $temp"
+read temp
+if [ "$temp" -lt "0" ];then
+    echo "It's freezing! Wear a heavy coat and gloves."
+elif [ "$temp" -gt "0" ] && [ "$temp" -lt "10" ];then
+    echo "It's cold. A warm jacket is recommended."
+elif [ "$temp" -gt "10" ] && [ "$temp" -lt "20" ];then
+    echo "It's cool. A light jacket should suffice."
+else 
+    echo "It's warm. Enjoy the pleasant weather!"
+fi
+-lt: less than 小于
+-eq: equal to  等于
+-gt: greater than大于
+-le: less than or equal to小于或等于
+-ge: greater than or equal to大于或等于
+-ne: not equal to不等于
+-z：检查字符串是否为空，如果字符串为空（长度为零），则为 true。
+for-in-done语法
+#!/bin/bash
+
+echo "Looping through an array:"
+NAMES=("Alice" "Bob" "Charlie" "David")
+for name in "${NAMES[@]}"; do
+  echo "Hello, $name!"
+done
+
+echo # Print an empty line for readability
+
+# Loop through a range of numbers
+echo "Looping through a range of numbers:"
+for i in {1..5}; do
+  echo "Number: $i"
+done
+while-do-done语法
+#!/bin/bash
+
+count=5
+echo "Countdown:"
+while [ $count -gt 0 ]; do
+  echo $count
+  count=$((count - 1))
+  sleep 1 # Wait for 1 second
+done
+echo "Blast off!"
+#!/bin/bash
+
+count=1
+echo "Counting up to 5:"
+until [ $count -gt 5 ]; do
+  echo $count
+  count=$((count + 1))
+  sleep 1 # Wait for 1 second
+done
+#!/bin/bash
+
+echo "Demonstration of break:"
+for i in {1..10}; do
+  if [ $i -eq 6 ]; then
+    echo "Breaking the loop at $i"
+    break
+  fi
+  echo $i
+done
+
+echo # Print an empty line for readability
+
+# Using continue to skip iterations
+echo "Demonstration of continue (printing odd numbers):"
+for i in {1..10}; do
+  if [ $((i % 2)) -eq 0 ]; then
+    continue
+  fi
+  echo $i
+done
+Shell Function（shell函数）
+#!/bin/bash
+
+greet() {
+  echo "Hello, $1!"
+}
+
+calculate() {
+  echo "The sum of $1 and $2 is $(($1 + $2))"
+}
+
+greet "Alice"
+calculate 5 3
+#!/bin/bash
+
+ENGLISH_CALC() {
+  local num1=$1
+  local operation=$2
+  local num2=$3
+  local result
+
+  case $operation in
+    plus)
+      result=$((num1 + num2))
+      echo "$num1 + $num2 = $result"
+      ;;
+    minus)
+      result=$((num1 - num2))
+      echo "$num1 - $num2 = $result"
+      ;;
+    times)
+      result=$((num1 * num2))
+      echo "$num1 * $num2 = $result"
+      ;;
+    *)
+      echo "Invalid operation. Please use 'plus', 'minus', or 'times'."
+      return 1
+      ;;
+  esac
+}
+
+# Test the function
+ENGLISH_CALC 3 plus 5
+ENGLISH_CALC 5 minus 1
+ENGLISH_CALC 4 times 6
+ENGLISH_CALC 2 divide 2 # This should show an error message
+shell中的特殊变量
+$0：此特殊变量保存脚本的名称。$1 和 $2：分别表示第一个和第二个命令行参数。$@：这表示传递给脚本的所有命令行参数。$#：这给出了命令行参数的计数。$$：这提供了当前 shell 的进程 ID。$？ 给出最后执行的命令的退出状态。0 通常表示成功，而非零值表示各种错误情况。$！ 提供最后一个后台命令的进程 ID。命令末尾的 & 在后台运行它。
+写法        传递的参数        举例（参数 a "b c" d）        实际效果
+$@        所有参数，空格分隔        a b c d        4 个参数
+$*        所有参数，空格分隔        a b c d        4 个参数
+"$@"        每个参数独立        "a" "b c" "d"        3 个参数
+"$*"        所有参数合成一个        "a b c d"        1 个参数
+trap cleanup_and_exit SIGINT SIGTERM
+解释：
+- trap：这是 Bash Shell 的一个内置命令，用于指定在接收到某些信号时要执行的命令。
+- cleanup_and_exit：这是当接收到信号时将要执行的命令（通常是一个函数名，也可以是具体的命令）。比如你可以定义一个函数 cleanup_and_exit 来做清理工作和安全退出。
+- SIGINT 和 SIGTERM：这两个是信号名。
+  - SIGINT：中断信号，通常是用户按下 Ctrl+C 时发出的信号。
+  - SIGTERM：终止信号，通常用于请求程序终止（不是强制终止，程序可以捕获这个信号并做善后处理）。
+exit 0：表示成功，正常退出。exit 1：表示失败，异常退出。如果你需要检测脚本运行结果，可以通过 $? 获取上一条命令的退出码。例如：./your_script.sh    echo $?
+创建硬链接：ln 源文件 目标文件
+创建软链接：ln -s 源文件 目标文件
+区别        硬链接（Hard Link）        软连接（Soft Link/符号链接）
+指向        同一个inode        目标文件路径
+是否可跨分区        否        是
+是否可指向目录        否        是
+删除原文件影响        不影响其他硬链接        软链接失效（变为死链接）
+创建命令        ln 源文件 目标文件        ln -s 源文件 目标文件
+inode 关系        共享inode        有独立inode
