@@ -1,6 +1,6 @@
+# 基础语法
 ls -l中的ls是list的缩写，用于列出目录内容。-l是long的缩写，表示以长格式显示目录内容。长格式显示会提供更多详细信息，包括文件的权限、链接数、所有者、所属组、文件大小、最后修改时间和文件名。-d 是 --directory 的缩写
-pwd -L，-L 是 --logical 的缩写，显示逻辑路径（符号链接路径）
-pwd -P，-P 是 --physical 的缩写， 显示物理路径（实际路径）
+pwd -L，-L 是 --logical 的缩写，显示逻辑路径（符号链接路径）。pwd -P，-P 是 --physical 的缩写， 显示物理路径（实际路径）
 在mkdir命令中，-m选项是--mode的缩写。它用于设置新创建目录的权限（模式）。mkdir -m 700 ~/project/digital_garden，-v选项是--verbose的缩写
 -R选项表示递归操作。-R是--recursive的缩写
 在tree命令中，-p选项是--perms的缩写。它用于在显示目录树时，显示每个文件和目录的权限。
@@ -11,6 +11,8 @@ echo "Test content" > test.txt，在test.txt中写入Test content
 cd 代表“更改目录”
 rm 表示永久删除且只能删除文件，如果删除一个目录需要用到递归，rm -r 
 cat 是 "concatenate" 的缩写，cat sales.txt marketing.txt > combined_report.txt将sales和marketing的内容顺序写入combined_report文件中，combined_report文件以前不存在通过这个命令会新建。cat -n daily_report.txt中-n会对输出的内容进行编号。-E 会在每行的末尾显示一个$。
+命令|功能
+
 cat:
 功能：
 查看文件内容：直接输出文件全部内容到终端。
