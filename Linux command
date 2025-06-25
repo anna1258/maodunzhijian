@@ -208,6 +208,7 @@ fi
 - $(( ... )) 是算术运算并返回结果；
 - (( ... )) 是只做运算，不返回结果（通常用于条件判断）。
 if-else语法
+```shell
 #!/bin/bash
 
 echo "Enter the current temperature in Celsius: $temp"
@@ -221,6 +222,7 @@ elif [ "$temp" -gt "10" ] && [ "$temp" -lt "20" ];then
 else 
     echo "It's warm. Enjoy the pleasant weather!"
 fi
+```
 -lt: less than 小于
 -eq: equal to  等于
 -gt: greater than大于
