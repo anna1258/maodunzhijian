@@ -165,10 +165,11 @@ ps只显示当前终端下属于当前用户的进程，ps aux显示系统中所
 
 
 # shell
-
+```shell
 #!/usr/bin/python3
 #!/bin/bash
 #!/解释器的路径
+```
 shebang 这个名字其实是英文单词 sharp（#号的非正式叫法）和 bang（感叹号的俚语）的组合。
 
 bash hello.sh，不需要执行权限（x），需要读权限（r），由 Bash 解释器读取并执行脚本内容
@@ -176,13 +177,14 @@ bash hello.sh，不需要执行权限（x），需要读权限（r），由 Bash
 ~/project/hello.sh ，需要执行权限（x），需要读权限（r）           
 
 shell中的${}和$
+```shell
 NAME="world"
-echo "hello $NAME123"    # 输出 hello 
-echo "hello ${NAME}123"  # 输出 hello world123
-
+echo "hello $NAME123"     #输出 hello 
+echo "hello ${NAME}123"   #输出 hello world123
+```
 ## 字符串与shell变量
 
-定义变量（等号两边不能有空格）：NAME="honor"，AGE=20
+定义变量（等号两边不能有空格）：NAME="Anna"，AGE=20
 引用变量： echo $NAME，echo ${AGE}
 只读变量： readonly NAME
 删除变量：unset AGE
@@ -190,59 +192,87 @@ echo "hello ${NAME}123"  # 输出 hello world123
 ## 字符串操作
 
 字符串长度：
-  STRING="hello"
-echo ${#STRING}     输出 5
+```shell
+STRING="hello"
+echo ${#STRING}     #输出 5
+```
 子串截取：
-  STRING="hello world"
-echo ${STRING:0:5}   输出 hello
+```shell
+STRING="hello world"
+echo ${STRING:0:5}   #输出 hello
+```
 查找子串位置：
-  expr index "$STRING" o    返回 o 第一次出现的位置
+```shell
+expr index "$STRING" o    #返回 o 第一次出现的位置
+```
 字符串替换：
-  STRING="hello world"
-echo ${STRING/world/bash}      hello bash
-echo ${STRING//l/x}           hexxo worxd（全部替换）
+```shell
+STRING="hello world"
+echo ${STRING/world/bash}      #hello bash
+echo ${STRING//l/x}           #hexxo worxd（全部替换）
+```
 删除子串：
-  STRING="abcABC123ABCabc"
-echo ${STRING#a*C}   删除第一次a到C之间的内容及本身，输出123ABCabc
-echo ${STRING##a*C}   删除最后一次a到C之间的内容及本身，输出abc
+```shell
+STRING="abcABC123ABCabc"
+echo ${STRING#a*C}   #删除第一次a到C之间的内容及本身，输出123ABCabc
+echo ${STRING##a*C}   #删除最后一次a到C之间的内容及本身，输出abc
+```
 拼接字符串：
-  STR1="hello"
+```shell
+STR1="hello"
 STR2="world"
 STR3="$STR1 $STR2"
 echo $STR3
-
+```
 ## 数组操作
 
 定义数组：
+```shell
   ARRAY=(apple banana cherry)
+```
 访问元素：
-  echo ${ARRAY[0]}      apple
-echo ${ARRAY[1]}      banana
+```shell
+echo ${ARRAY[0]}     # apple
+echo ${ARRAY[1]}     # banana
+```
 获取所有元素：
-  echo ${ARRAY[@]}      apple banana cherry
-echo ${ARRAY[*]}      apple banana cherry
+```shell
+  echo ${ARRAY[@]}      #apple banana cherry
+echo ${ARRAY[*]}      #apple banana cherry
+```
 获取数组长度：
-  echo ${#ARRAY[@]}     3
+```shell
+echo ${#ARRAY[@]}     # 3
+```
 遍历数组：
-  for ITEM in "${ARRAY[@]}"; do
+```shell
+for ITEM in "${ARRAY[@]}"; do
  echo $ITEM
 done
+```
 添加元素：
-  ARRAY+=(date)
+```shell
+ARRAY+=(date)
+```
 删除元素：
-  unset ARRAY[1]     删除第二个元素
-
+```shell
+unset ARRAY[1]     # 删除第二个元素
+```
 ## 其他常见用法
 
 变量默认值：
-  echo ${VAR:-default}   如果VAR为空，则输出default
+```shell
+echo ${VAR:-default}   # 如果VAR为空，则输出default
+```
 变量赋值默认值：
-  echo ${VAR:=default}   如果VAR为空，则赋值为default，并输出
+```shell
+echo ${VAR:=default}   #如果VAR为空，则赋值为default，并输出
+```
 判断变量是否存在：
 
 ```shell
-  if [ -z "$VAR" ]; then
-    echo "VAR is empty"
+if [ -z "$VAR" ]; then
+ echo "VAR is empty"
 fi
 ```
 
@@ -397,17 +427,17 @@ ENGLISH_CALC 2 divide 2 # This should show an error message
 
 ## shell中的特殊变量
 
-$0：此特殊变量保存脚本的名称。$1 和 $2：分别表示第一个和第二个命令行参数。$@：这表示传递给脚本的所有命令行参数。$#：这给出了命令行参数的计数。$$：这提供了当前 shell 的进程 ID。$？ 给出最后执行的命令的退出状态。0 通常表示成功，而非零值表示各种错误情况。$！ 提供最后一个后台命令的进程 ID。命令末尾的 & 在后台运行它。
+`$0`：此特殊变量保存脚本的名称。`$1` 和` $2`：分别表示第一个和第二个命令行参数。`$@`：这表示传递给脚本的所有命令行参数。`$#`：这给出了命令行参数的计数。`$$`：这提供了当前 shell 的进程 ID。`$？` 给出最后执行的命令的退出状态。0 通常表示成功，而非零值表示各种错误情况。`$！` 提供最后一个后台命令的进程 ID。命令末尾的 `&` 在后台运行它。
 
 | 写法 | 传递的参数         | 举例（参数 a "b c" d） | 实际效果 |
 | ---- | ------------------ | ---------------------- | -------- |
-| $@   | 所有参数，空格分隔 | a b c d                | 4 个参数 |
-| $*   | 所有参数，空格分隔 | a b c d                | 4 个参数 |
-| "$@" | 每个参数独立       | "a" "b c" "d"          | 3 个参数 |
-| "$*" | 所有参数合成一个   | "a b c d"              | 1 个参数 |
+| `$@`   | 所有参数，空格分隔 | a b c d                | 4 个参数 |
+| `$*`   | 所有参数，空格分隔 | a b c d                | 4 个参数 |
+|` "$@"` | 每个参数独立       | "a" "b c" "d"          | 3 个参数 |
+| `"$*"` | 所有参数合成一个   | "a b c d"              | 1 个参数 |
 
 trap cleanup_and_exit SIGINT SIGTERM
 解释：trap：这是 Bash Shell 的一个内置命令，用于指定在接收到某些信号时要执行的命令。cleanup_and_exit：这是当接收到信号时将要执行的命令（通常是一个函数名，也可以是具体的命令）。比如你可以定义一个函数 cleanup_and_exit 来做清理工作和安全退出。SIGINT 和 SIGTERM：这两个是信号名。SIGINT：中断信号，通常是用户按下 Ctrl+C 时发出的信号。SIGTERM：终止信号，通常用于请求程序终止（不是强制终止，程序可以捕获这个信号并做善后处理）。
 
-exit 0：表示成功，正常退出。exit 1：表示失败，异常退出。如果你需要检测脚本运行结果，可以通过 $? 获取上一条命令的退出码。例如：./your_script.sh    echo $?
+exit 0：表示成功，正常退出。exit 1：表示失败，异常退出。如果你需要检测脚本运行结果，可以通过 $? 获取上一条命令的退出码。例如：`./your_script.sh    echo $?`
 
