@@ -75,32 +75,20 @@ This is the new content after the patch is applied.
 ```shell
 ssh-keygen -t rsa
 ```
-
 `ssh-keygen`命令（用于生成密钥对）。id_rsa（私钥文件）id_rsa.pub（公钥文件）默认路径通常是 ~/.ssh/id_rsa
-
 在有远程服务器密码或私钥的前提下，将公钥添加到远程服务器的 `~/.ssh/authorized_keys` 文件中，这样可以实现对远程服务器的ssh访问。
 
-
 ## 11、 netstat用法
-
 **`netstat -tulpn`**：显示所有 TCP 和 UDP 的监听端口及其对应的进程信息。
-
 `ss -tulpn`：`ss` 命令是 `netstat` 的现代替代品，功能更强大
-
 **`netstat -a | grep :80`**：显示所有与端口 80 相关的网络连接。
-
 **`netstat -tn | grep :443`**：显示所有与端口 443 相关的 TCP 网络连接。
-
 **`-t`**：显示 TCP 端口。
-
 **`-u`**：显示 UDP 端口。
-
 **`-l`**：显示监听状态的端口。
-
 **`-p`**：显示进程 ID 和进程名称。
-
 **`-n`**：以数字形式显示 IP 地址和端口号，不进行域名解析。
-
 **`-a`**：显示所有选项，默认不显示LISTEN相关。
-
 **`grep :80`**：过滤出包含 `:80` 的行。
+## 11、在 Linux 环境的环境设置中添加 MONITORING_DIR=/opt/monitoring
+`export MONITORING_DIR=/opt/monitoring`
