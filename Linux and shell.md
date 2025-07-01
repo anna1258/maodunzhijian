@@ -303,6 +303,28 @@ fi
 -ne: not equal to不等于
 -z：检查字符串是否为空，如果字符串为空（长度为零），则为 true。
 
+## case语法
+```shell
+case $operator in
+    +)
+        result=$(expr $num1 + $num2)
+        ;;
+    -)
+        result=$(expr $num1 - $num2)
+        ;;
+    \*)
+        result=$(expr $num1 \* $num2)
+        ;;
+    /)
+        result=$(expr $num1 / $num2)
+        ;;
+    *)
+        echo "Invalid operator: $operator"
+        exit 1
+        ;;
+esac
+```
+
 ## for-in-done语法
 
 ```shell
