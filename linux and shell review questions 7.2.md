@@ -184,7 +184,7 @@ echo "[Output] $sort Order [Output]"
 echo ${arr[*]}
 ```
 
-取最大数
+## 14、取最大数
 
 ```shell
 labex:project/ $ bash compareIntegers.sh 1 4 2 3
@@ -217,7 +217,7 @@ echo $max
 
 ${#array[i]}获取数组 array 中索引为 i 的元素的长度。${array[i]}访问数组 array 中索引为 i 的元素。
 
-## 14、对文档字母做大小写转换
+## 15、对文档字母做大小写转换
 
 ```shell
 labex:project/ $ bash stringConv.sh input_file.txt
