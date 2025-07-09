@@ -306,9 +306,32 @@ git commit -m "Initial commit"
 git push origin main
 ```
 
-远程拉取
+# 远程
+
+## 远程拉取
+
+在本地与远程仓库已绑定的前提下：
 
 ```shell
 git pull origin main
+```
+
+## 远程clone
+
+clone就是复制一份到本地，所有本地不需要有git环境，甚至说啥环境都不需要，因为这只是复制操作。
+
+```shell
+git clone https://github.com/github/gitignore
+# clone深度为 1 个提交（commit）
+git clone --depth=1 https://github.com/github/gitignore
+```
+
+submodule
+
+Git 子模块（Submodule）允许你将一个 Git 仓库作为子模块嵌入到另一个 Git 仓库中。子模块本质上是一个独立的 Git 仓库，但它被嵌入到父仓库中，并且可以通过父仓库的版本控制来管理。例如，一个常用的工具库可以作为一个子模块嵌入到多个项目中。一个项目可能依赖于多个第三方库，这些库可以作为子模块嵌入到项目中。
+
+```shell
+git submodule add <upstream-path> <local-path>
+git submodule add https://github.com/labex-labs/git-playground.git ./git-playground
 ```
 

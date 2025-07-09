@@ -30,7 +30,43 @@ cat 是 "concatenate" 的缩写，cat sales.txt marketing.txt > combined_report.
 
 whereis 命令。该命令用于定位指定命令的二进制文件、源代码和手册页文件。
 
-find . -name "a.txt" .表示当前目录，find . -name "*.txt" -exec cat {} \; find / -perm -4000 -exec ls -l {} \; find命令主要用于查找文件或目录本身，比如文件名、大小、修改时间、权限等进行搜索，不能搜索文件内的内容，如果查找文件内部的内容，需要用到grep命令。例如：find ~/project -readable -writable， find ~/project -user labex。find ~/project -type f | wc -l统计目录下文件的数量，find . -type f -not \(-name \`*.bat\` -or -name \`*.sh\`\) -delete
+find . -name "a.txt" .表示当前目录，find 命令的基本结构
+
+```bash
+find <起始目录> <查找条件> <执行动作>
+```
+
+起 始目录：从哪个目录开始查找。
+
+查找条件：用于指定查找的条件（如文件类型、文件名模式等）。
+
+执行动作：对找到的文件或目录执行的操作。
+
+`-exec` 是 `find` 命令的一个选项，是最常用的执行动作的命令选项，用于对找到的每个文件或目录执行指定的命令。其基本语法如下：
+
+```bash
+-exec <command> {} \;
+```
+
+**`<command>`**：要执行的命令。
+
+**`{}`**：一个占位符，表示当前找到的文件或目录的路径。
+
+**`\;`**：表示 `-exec` 选项的结束。
+
+find . -name ".txt" -exec cat {} \; 
+
+find / -perm -4000 -exec ls -l {} \; 
+
+find命令主要用于查找文件或目录本身，比如文件名、大小、修改时间、权限等进行搜索，不能搜索文件内的内容，如果查找文件内部的内容，需要用到grep命令。例如：
+
+find ~/project -readable -writable， 
+
+find ~/project -user labex。
+
+find ~/project -type f | wc -l统计目录下文件的数量，
+
+find . -type f -not \(-name \`.bat\` -or -name \`.sh\`\) -delete。
 
 which 在path中查找路径，which 命令用于查找并显示可执行文件的路径。它通常用于确定在命令行中输入的命令是从哪个路径执行的。which 命令只会查找在 PATH 环境变量中定义的目录中的可执行文件。which python。which只会在$PATH变量指定的目录中查找命令的可执行文件，whereis会找到更多相关文件，比如可执行文件，源码，手册等。
 
