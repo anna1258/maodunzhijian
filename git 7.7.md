@@ -303,8 +303,12 @@ git add .
 git commit -m "Initial commit"
 
 # 推送远程仓master分支
-git push origin master
+git push origin main
+```
 
+远程拉取
 
+```shell
+git pull origin main
 ```
 
