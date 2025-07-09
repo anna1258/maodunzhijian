@@ -326,7 +326,7 @@ git clone https://github.com/github/gitignore
 git clone --depth=1 https://github.com/github/gitignore
 ```
 
-submodule
+## submodule
 
 Git 子模块（Submodule）允许你将一个 Git 仓库作为子模块嵌入到另一个 Git 仓库中。子模块本质上是一个独立的 Git 仓库，但它被嵌入到父仓库中，并且可以通过父仓库的版本控制来管理。例如，一个常用的工具库可以作为一个子模块嵌入到多个项目中。一个项目可能依赖于多个第三方库，这些库可以作为子模块嵌入到项目中。
 
