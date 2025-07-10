@@ -57,6 +57,8 @@ git checkout feature-dimension 切换到feature-dimension分支。现在更多�
 
 git checkout master    git merge feature-dimension  需要先切换到master然后再从 `feature-dimension` 中获取所有更改并将它们应用于 `master`
 
+git checkout def5678  切换到def5678这次的commit，def5678的一次提交的hash。
+
 git branch -d feature-dimension  `-d` 标志告诉 Git 删除该分支，但前提是该分支已完全合并。这是一种防止意外丢失未合并更改的安全措施。
 
 git branch -m master main 修改当前分支名为main
@@ -183,6 +185,14 @@ git push origin v1.0  推送标签到远程库
    ```shell
    git checkout -b release-v1.0 v1.0
    ```
+
+## Fast Forward Merging
+
+在 Git 中，合并（Merge）是指将一个分支的更改合并到另一个分支。通常情况下，合并会创建一个新的合并提交（Merge Commit），这个提交有两个父提交：一个是当前分支的最新提交，另一个是被合并分支的最新提交。然而，在某些情况下，Git 可以通过一种更简单的方式完成合并，而不需要创建新的合并提交。这种合并方式就是 Fast Forward Merging。
+
+原理：假设 Anna 有一个主分支 `main` 和一个功能分支 `feature`。`feature` 分支是从 `main` 分支创建的，并且在 `feature` 分支上进行了一些开发。如果在合并 `feature` 分支到 `main` 分支时，`main` 分支没有任何新的提交，那么 Git 可以直接将 `main` 分支的指针向前移动到 `feature` 分支的最新提交。这种操作称为 **Fast Forward Merging**。这样做的优势是效率高。
+
+fast forward merging是默认开启的，但为了预防多成员协作可能导致冲突，会禁用这个共功能，使用： git config --global --add merge.ff false
 
 # 本地与远程仓对应
 

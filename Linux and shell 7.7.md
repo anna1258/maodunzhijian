@@ -143,7 +143,14 @@ grep "PATH" ~/.zshrc | grep "HOME"只查找同时包含 "PATH" 和 "HOME" 的行
 
 tr translate命令用于字符转换、删除和压缩，只能处理标准输入，不能直接处理文件，需配合重定向或管道使用。只支持字符级别操作，不支持正则表达式。cat a.file | tr '[:lower:]' '[:upper:]'，cat a.file | tr '[:upper:]' '[:lower:]'
 
-realpath path_analysis.sh，顾名思义，查看一个文件的绝对路径。
+realpath path_analysis.sh，顾名思义，查看一个文件的绝对路径。它可以将相对路径转换为绝对路径。
+
+```shell
+sudo updatedb
+locate example.txt
+```
+
+`locate` 会列出所有包含 `example.txt` 的文件路径。`locate` 是一个用于快速查找文件的命令。它通过搜索预先构建的文件名数据库来查找文件路径。这个数据库通常由 `updatedb` 命令定期更新。
 
 Bash 脚本：:在终端中，使用 bash script.sh 或 ./script.sh（需要先给脚本可执行权限，chmod +x script.sh）。PowerShell 脚本：:在PowerShell 中，使用 .\script.ps1 或 C:\Path\To\Script\script.ps1。Python 脚本：:在终端中，使用 python script.py
 
