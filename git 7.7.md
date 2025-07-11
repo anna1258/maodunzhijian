@@ -29,13 +29,15 @@ git config --global --get http.proxy 查看代理
 
 
 
-# 本地查看配置
+# 本地查看编辑配置
 
 git config --global --list
 
 git config --local --list
 
 git config --global --get user.name
+
+git config --global -e  编辑配置
 
 # 本地仓常见用法add、commit、diff
 
@@ -51,7 +53,9 @@ git commit -m "Initial commit: Create the multiverse hub" 提交更改，-m表�
 
 git branch feature-dimension 创建新的分支
 
-git branch 查看分支，带*的是当前工作的分支
+git branch 查看所有分支，带*的是当前工作的分支
+
+git branch --show-current  直接输出当前分支
 
 git checkout feature-dimension 切换到feature-dimension分支。现在更多用git switch feature-dimension来切换分支
 
