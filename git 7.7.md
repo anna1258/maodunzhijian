@@ -208,6 +208,10 @@ git push origin v1.0  推送标签到远程库
 
 fast forward merging是默认开启的，但为了预防多成员协作可能导致冲突，会禁用这个共功能，使用： git config --global --add merge.ff false
 
+## git shorlog b00b937..d22f46b
+
+查看b00b937到d22f46b之间两次commit的区别。b00b937到d22f46b是两次commit的hash值，可以通过git log --oneline查看。
+
 # 本地与远程仓对应
 
 在 Git 中，本地分支和远程分支的名称可以一一对应，也可以不对应。默认情况下，Git 会尝试保持本地分支和远程分支的名称一致，但你可以根据需要自定义这些名称。确立本地分支和远程分支之间的跟踪关系是通过 `git branch` 和 `git checkout` 命令完成的。
@@ -317,7 +321,7 @@ git remote add origin git@github.com:username/repository.git
 ## 测试
 
 ```shell
-#创建新分支：在本地创建一个新的分支 my-branch。设置上游分支：将新分支的上游分支设置为 origin/main
+#创建新分支：在本地创建一个新的分支 my-branch。设置上游分支：将新分支的上游分支设置为 origin/main。按需看是否需要这一步。
 git checkout -b my-branch origin/main
 
 # 创建一个测试文档
@@ -329,8 +333,8 @@ git add .
 # 提交更改
 git commit -m "Initial commit"
 
-# 推送远程仓master分支
-git push origin main
+# 推送远程仓main分支
+git push
 ```
 
 # 远程
