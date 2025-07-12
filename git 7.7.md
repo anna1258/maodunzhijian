@@ -39,6 +39,16 @@ git config --global --get user.name
 
 git config --global -e  编辑配置
 
+git config --global push.default current
+
+`push.default` 的可能值
+
+- **`nothing`**：不推送任何分支。
+- **`matching`**：推送所有匹配的分支（默认行为，但不推荐）。
+- **`current`**：仅推送当前分支到远程仓库的同名分支。
+- **`upstream`**：推送当前分支到其上游分支（即跟踪的远程分支）。
+- **`simple`**：如果当前分支有上游分支，则推送当前分支到其上游分支；否则，推送当前分支到远程仓库的同名分支（推荐）
+
 # 本地仓常见用法add、commit、diff
 
 echo "hello git" > hello.txt  新增文件
@@ -298,7 +308,7 @@ cat ~/.ssh/id_rsa.pub
 # 公钥放到GitHub上
 登录到 GitHub，进入 Settings 页面，找到 SSH and GPG keys 部分，点击 New SSH key。粘贴你刚刚复制的公钥到 Key 栏，给它起一个名字（比如：My Laptop），然后点击 Add SSH key。
 
-# 添加远程仓库
+# 添加远程仓库，并将远程仓库用origin代指
 git remote add origin git@github.com:username/repository.git
 ```
 
@@ -307,6 +317,9 @@ git remote add origin git@github.com:username/repository.git
 ## 测试
 
 ```shell
+#创建新分支：在本地创建一个新的分支 my-branch。设置上游分支：将新分支的上游分支设置为 origin/main
+git checkout -b my-branch origin/main
+
 # 创建一个测试文档
 echo "I am Labex Readme Doc" > readme.md
 
