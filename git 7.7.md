@@ -352,6 +352,10 @@ git commit -m "Initial commit"
 git push
 ```
 
+git remote -v 查看跟踪的远程分支，这里需要注意如果上面使用ssh方式，那么要将远程分支改为ssh的而不能用https的。使用git remote set-url origin git@github.com:yourusername/xxx.git
+
+git branch -vv 查看远程分支和本地分支的跟踪关系。
+
 # 远程
 
 ## 远程拉取
