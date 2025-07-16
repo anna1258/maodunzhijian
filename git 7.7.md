@@ -27,7 +27,9 @@ git config --global --unset http.proxy 取消代理
 
 git config --global --get http.proxy 查看代理
 
+git config --global help.autocorrect 1 开启自动更正命令，很好用，有必要设置。
 
+git config --global core.editor "vim" 设置默认的编辑器为vim。
 
 # 本地查看编辑配置
 
@@ -123,7 +125,7 @@ git stash branch feature-branch ## 创建新的分支并应用这些暂存，暂
 
 ## git diff
 
-git diff 只显示未暂存的更改，即没有add的
+git diff 只显示未暂存的更改，即还没有add的文件的内容对比。
 
 git diff greet.js 只看没有add的greet.js文件的
 
@@ -135,7 +137,7 @@ git diff master  比较当前分支与master，需要分支中的内容已经add
 
 git diff master feature-branch -- numbers.js  比较两个分支内容中的numbers.js文件，需要分支中的numbers.js文件内容已经add和commit了。
 
-## git reset
+## git reset/restore/rm
 
 git reset --soft HEAD~2  此命令将 HEAD 移回两个提交。`~2` 表示“在当前 HEAD 之前的两个提交”。你可以使用 `~N` 回溯 `N` 个提交。这种方法叫软重置，将当前分支的指针回退到指定的提交，但保留工作目录和暂存区中的更改。
 
@@ -159,9 +161,13 @@ A -> B -> C (HEAD)
 
 你在 `C` 提交后修改了 `file1.txt`。那么执行`git reset --soft HEAD~2`后暂存区依然是修改后的file1.txt。
 
+git restore file.txt 将工作目录中的file.txt恢复到最近一次的提交状态。
+
+git rm file.txt 在暂存区删除了文件，然后执行git commit 把删除提交到仓库，一般用户删除仓库上的文件。
+
 ## git reflog
 
-git reflog  会列出最近采取的所有操作的列表，包括重置。每个条目都有一个 HEAD@{n} 标识符。要恢复丢失的提交，你可以重置到硬重置之前的状态：git reset --hard HEAD@{1}。
+git reflog  会列出最近采取的所有操作的列表，包括重置。每个条目都有一个 HEAD@{n} 标识符。要恢复丢失的提交，你可以重置到硬重置之前的状态：git reset --hard HEAD@{1}。用于记录分支头（HEAD）的所有引用操作，包括 `git reset`、`git checkout`、`git merge` 等操作。
 
 ## tag
 
@@ -211,6 +217,15 @@ fast forward merging是默认开启的，但为了预防多成员协作可能导
 ## git shorlog b00b937..d22f46b
 
 查看b00b937到d22f46b之间两次commit的区别。b00b937到d22f46b是两次commit的hash值，可以通过git log --oneline查看。
+
+# clone一个仓库到本地后想清晰看到历史提交和版本情况
+
+`git log --pretty=oneline --graph --decorate --all` 是一个非常实用的命令组合，它提供了以下功能：
+
+- **`--pretty=oneline`**：将每个提交显示在一行中。
+- **`--graph`**：显示图形化的提交历史。
+- **`--decorate`**：显示分支名、标签名等引用信息。
+- **`--all`**：显示所有分支的提交历史。
 
 # 本地与远程仓对应
 
@@ -336,6 +351,10 @@ git commit -m "Initial commit"
 # 推送远程仓main分支
 git push
 ```
+
+git remote -v 查看跟踪的远程分支，这里需要注意如果上面使用ssh方式，那么要将远程分支改为ssh的而不能用https的。使用git remote set-url origin git@github.com:yourusername/xxx.git
+
+git branch -vv 查看远程分支和本地分支的跟踪关系。
 
 # 远程
 
