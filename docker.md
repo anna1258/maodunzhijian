@@ -142,3 +142,10 @@ docker logs --timestamps nginx-detached 为日志打时间戳
 如果交互式写法可以写：docker exec -it nginx-detached /bin/sh，完毕后输入exit退出交互。
 
 在 nginx 容器里列出根目录：docker exec nginx ls /
+
+# 容器与主机间的拷贝
+
+docker cp hello.html nginx-detached:/usr/share/nginx/html/hello.html
+
+docker cp nginx-detached:/etc/nginx/nginx.conf ~/project/nginx.conf
+
