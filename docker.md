@@ -115,13 +115,51 @@ labex:project/ $ docker port nginx-with-port
 80/tcp -> 0.0.0.0:8080
 ```
 
-## 启动时为容器设置环境变量
+## Environment Variables启动时为容器设置环境变量
+
+容器进程本身的环境变量只能在启动时一次性注入
 
 docker run --name env-test -e MY_VAR="Hello, Environment" -d ubuntu 为容器设置值为MY_VAR的环境变量
 
-## 启动容器时为容器限制内存cpu
+## Resource Constraints启动容器时为容器限制内存cpu
 
 docker run --name limited-nginx -d --memory=512m --cpus=0.5 nginx 限制内存和cpu
+
+## Volume Mounting
+
+docker run -d --name nginx-volume -p 8081:80 -v ~/project/nginx-data:/usr/share/nginx/html nginx 将主机上的~/project/nginx-data挂载到/usr/share/nginx/html中。tip:挂载点在容器创建时就需要确定了，在容器创建后挂载点不可修改。
+
+## Network Settings
+
+docker network create my-custom-network 新建一个自定义的网络桥
+
+docker run -d --name nginx-networked --network my-custom-network nginx 将容器nginx-networked连接到刚创建的my-custom-network网络中，在同一网络中的容器可以通过容器名作为主机名互相连接
+
+## Restart Policies
+
+docker run -d --name nginx-restart --restart unless-stopped nginx，以unless-stopped的重启策略启动容器。
+
+重启策略共有：
+
+no：默认的no，从不重启
+
+on-failure：只在退出状态为非0的时候重启
+
+always：无论退出状态的什么都重启
+
+unless-stopped：除非是用户主动退出否则都会自动重启
+
+启动容器时为容器内新建目录并在容器内执行命令
+
+docker run -d --name nginx-custom -w /app nginx sh -c "touch newfile.txt && nginx -g 'daemon off;'"
+
+和docker exec的区别是第一个是启动时，第二个是在容器运行时执行命令，且docker exec是新起的一个进程去执行命令。
+
+## tip
+
+以/bin/bash为默认命令的镜像直接docker run会直接退出，需要-it、-d、sleep infinity`、`tail -f /dev/null`、`nginx -g 'daemon off;'来保持进程。以/bin/bash为默认命令的有ubuntu、alpine
+
+
 
 # docker ps -a和docker ps区别
 
