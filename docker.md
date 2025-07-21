@@ -238,3 +238,42 @@ a1b2c3d4e5f6   limited-nginx  0.25%     12.5MiB / 50MiB    25.00%    1.2kB / 648
 - **PIDS**：容器内进程数  
 
 按 `Ctrl+C` 退出。
+
+# dockerfile&docker build
+
+docker build -t my-nginx .   -t表示tag本次的镜像名字为my-nginx，.表示在当前目录下构建镜像（dockerfile以及index.html等需要在本目录下）。
+
+几个dockerfile的案例
+
+```dockerfile
+FROM nginx
+RUN apt-get update && apt-get install -y curl
+COPY index.html /usr/share/nginx/html/
+```
+
+```dockerfile
+FROM nginx
+ENV NGINX_PORT 9000
+RUN sed -i "s/listen\s*80;/listen $NGINX_PORT;/g" /etc/nginx/conf.d/default.conf
+COPY index.html /usr/share/nginx/html/
+```
+
+```dockerfile
+FROM nginx
+COPY index.html /usr/share/nginx/html/
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+ENTRYPOINT ["/start.sh"]
+```
+
+```shell
+#!/bin/bash
+# Set a default port if NGINX_PORT is not set
+export NGINX_PORT=${NGINX_PORT:-9100}
+# Replace the port in the nginx configuration
+sed -i "s/listen\s*80;/listen $NGINX_PORT;/g" /etc/nginx/conf.d/default.conf
+echo "Starting Nginx on port $NGINX_PORT"
+nginx -g 'daemon off;'
+```
+
+上面这个案例与dockerfile中设置ENV NGINX_PORT=${NGINX_PORT:-9100}的效果是等价的，即没有传入NGINX_PORT变量时为9100，传入变量是以传入的为准。
