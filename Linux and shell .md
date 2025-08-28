@@ -211,6 +211,22 @@ bc用法：echo "(25 * 4 +87) / 10" | bc，echo "696 + 425 - 237" | bc
 
 # 常见应用场景
 
+## 查找某一个文件
+
+find / -type f -name "deploy.sh" 2>/dev/null
+
+/跟目录下查找,-type f表示只找文件，2>/dev/null表示忽略无权限的信息。find可以精确找到当前存在的文件。
+
+sudo updatedb 
+
+locate deploy.sh
+
+先更新数据库再查找。
+
+realpath deploy.sh
+
+realpath会把当前pwd的路径与文件名拼接，然后如果存在文件返回绝对路径，如果不存在返回报错。realpath的主要作用是用来返回规范化的绝对路径的。realpath后可以跟绝对路径或相对路径，无论什么路径会先判断文件是否存在，然后返回规范化的绝对路径。
+
 ## 设置ssh公私钥
 
 ```shell
