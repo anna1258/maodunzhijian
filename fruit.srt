@@ -1,0 +1,1227 @@
+#!/bin/bash
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+NC='\033[0m'
+
+
+
+#判断登录的用户是否是root
+if [[ "$(whoami)" = root ]];then
+	echo "开始执行脚本"
+else
+	echo "请使用root身份登录"
+	sleep 3
+	exit 1
+fi
+
+echo "=====检查项开始 用例：禁用不必要的http方法====="
+
+# 检查是否启动 Nginx 服务
+#if systemctl is-active nginx &>/dev/null; then（容器中无法使用systyemctl，使用其他命令代替）
+if pgrep "nginx" >/dev/null; then
+    if [ -f "/etc/nginx/nginx.conf" ]; then
+        if grep -i -E "^\s*[^#].*_method" /etc/nginx/nginx.conf | grep -i -qv -E "GET|HEAD|POST" || grep -i -q -E "limit_except GET POST HEAD" /etc/nginx/nginx.conf || grep -i -q -E "(^\s*[^#].*_method !~ ^(GET|HEAD|POST)$)" /etc/nginx/nginx.conf; then
+            echo -e "${GREEN}用例pass${NC}: Nginx.conf 中仅允许 GET、POST、HEAD 方法"
+        else
+            echo -e "${RED}用例fail: nginx.conf 中存在不允许的 HTTP 请求方法，请参考用例手动执行相关命令查看${NC}"
+        fi
+    else
+        echo -e "${GREEN}用例不涉及: /etc/nginx/nginx.confng 文件不存在，忽略配置文件检查${NC}"
+    fi
+else
+    echo -e "${GREEN}用例不涉及: Nginx 服务未启动，忽略配置文件检查${NC}"
+fi
+
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：检测发布版本中是否含有编译器/调试器/调试功能/编译工具/调试工具的PRM安装包/危险工具====="
+# 执行命令查询并存储结果
+result=$(find /usr/bin/ /usr/local/bin/ /usr/sbin/ /usr/local/sbin/ /bin/ /sbin/ \( -name 'tcpdump' -o -name 'gdb' -o -name 'strace' -o -name 'readelf' -o -name 'cpp' -o -name 'gcc' -o -name 'ethereal' -o -name 'objdump' -o -name 'aplay' -o -name 'arecord' -o -name 'vnstat' -o -name 'vnStatsvg' -o -name 'nload' -o -name 'atop' -o -name 'iftop' -o -name 'ld' -o -name 'lex' -o -name 'rpcgen' -o -name 'Modems' -o -name 'crontab' \))
+
+# 判断是否存在嗅探工具
+if [[ -n "$result" ]]; then
+    echo -e "${RED}用例fail: 查询存在嗅探工具, 前10行匹配项如下:${NC}"
+    echo "$result"    #打印所有匹配项
+else
+    echo -e "${GREEN}用例pass: 不存在嗅探工具${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：删除软件安装包以及疑似安装包====="
+# 执行命令查询
+result_184=$(find /opt/hihonor -name "*.tar" -o -name "*.gz" -o -name "*.zip" -o -name "*.cab" -o -name "*.uue" -o -name "*.iso" -o -name "*.7Z" -o -name "*.Z" -o -name "*.gzip" -o -name ".bz" -o -name "*.bz2" -o -name "*.arj" -o -name "*.lzh" -o -name "*.7zip" -o -name "*.rpm" -o -name "*.deb" -o -name "*.bin" -o -name "*.apk" -o -name "*.exe")
+if [[ -n "$result_184" ]]; then
+	echo -e "${ORANGE}用例结果待定: 查询结果存在${NC}"
+	echo -e "请手动确认。以下为部分输出结果:\n$result_184" | head -n 10
+else
+	echo -e "${GREEN}用例pass: 查询存在疑似软件安装包${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：禁止监听0.0.0.0全网IP(如果是容器内不用关注该条，因为外部访问k8s集群或者集群之间访问才涉及全网监听)====="
+# 执行命令查询
+#result_189=$(netstat -tln | awk '{print $1,$2,$3,$4}' | grep 0.0.0.0 | awk -F: '{print $2}' | xargs -I {} lsof -i:{} | grep -i -v -E "sshd|oracle|dhcp|bootp|keepalived")
+result_189=$(netstat -tln | awk 'BEGIN {count=0} {count++} END {if (count>2) print $1,$2,$3,$4}' | grep 0.0.0.0 | awk -F: '{print $2}' | xargs -I {} lsof -i:{} | grep -i -v -E "sshd|oracle|dhcp|bootp|keepalived")
+if [[ -n "$result_189" ]]; then
+	echo -e "${ORANGE}用例结果待定: 查询存在全网监听的IP${NC}"
+	echo -e "请手动确认。以下为存在全网监听的部分进程:\n$(echo "$result_189" | head -n 10)"
+else
+	echo -e "${GREEN}用例pass: 查询结果为空${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：禁止方向健/history等方式显示口令====="
+#执行命令查询
+if history | grep -q ".*"; then
+	echo -e "${GREEN}用例pass${NC}"
+else
+	if history | grep -E "*@*|token" >/dev/null; then
+		echo -e "${RED}用例fail: 历史命令中存在敏感信息，请参考用例手动执行相关命令查看${NC}"
+	else
+		echo -e "${GREEN}用例pass: 历史命令中不存在敏感信息${NC}"
+	fi
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+#echo "=====检查项开始 用例：操作系统版本要求_禁用netcat====="
+#执行命令查询
+#if command -v nc &> /dev/null || command -v netcat &> /dev/null; then
+#	echo -e "${RED}用例fail: 系统安装了netcat/nc${NC}"
+#else
+#	echo -e "${GREEN}用例pass: 命令不存在${NC}"
+#fi
+#echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：设置OS系统用户掩码====="
+#执行命令查询
+if [[ $(umask) -ge 0027 ]]; then
+	echo -e "${GREEN}用例pass${NC}"
+else
+	echo -e "${RED}用例fail: 当前OS系统用户掩码为：$(umask)${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：设置OS系统目录权限(1、主目录/home/hihonor目录权限检查)====="
+#1、执行 find / -nouser 命令并检查输出的文件是否属于 /etc/passwd 中的用户：
+# output=$(find / -nouser)  # 执行 find / -nouser 命令获取输出结果
+
+# if [[ -n $output ]]; then
+	# while IFS= read -r file; do
+		# owner=$(stat -c '%U' "$file")  # 获取文件的属主
+		# if ! grep -q "^$owner:" /etc/passwd; then
+			# echo "存在无属主文件"
+#           exit 0
+		# fi
+	# done < "$output"
+# fi
+
+# echo "不存在无属主文件"
+#2、检查当前登录用户的目录是否存在于 /home，并验证其权限是否不超过 750：
+# username=$(whoami)  # 获取当前登录用户的用户名
+# userdir="/home/$username"  # 构建用户的目录路径
+
+# if [[ -d $userdir ]]; then
+	# permissions=$(stat -c '%a' "$userdir")  # 获取目录权限
+	# if (( permissions <= 750 )); then
+		# echo "目录权限满足"
+#      exit 0
+	# fi
+# fi
+
+# echo "目录权限不满足"
+
+# 检查是否存在无属主文件
+#if find / -nouser -print -quit &>/dev/null; then
+#	echo "存在无属主文件"
+#else
+#	echo "不存在无属主文件"
+#fi
+# 检查用户的 home 目录权限是否不超过 750
+home_dir="/home/hihonor"
+if [[ -d "$home_dir" ]]; then
+	if [[ "$(stat -c "%a" "$home_dir")" -le 750 ]]; then
+		echo -e "${GREEN}用例pass：主目录权限满足要求${NC}"
+	else
+		echo -e "${RED}用例fail：主目录权限不满足要求：当前主目录为$(stat -c "%a" "$home_dir")${NC}"
+	fi
+else
+	echo -e "${GREEN}用例不涉及：主目录不存在${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+echo "=====检查项开始 用例：设置OS系统目录权限(2、/opt/hihonor目录下无属主文件检查)====="
+echo "请等待该用例执行完成..."
+#export nouser=false
+#if [[ -d "/opt/hihonor" ]]; then
+#	timeout 300s find /opt/hihonor -type f -print0 | while IFS= read -r -d '' file; do
+#    # 获取文件的属主
+#		owner=$(stat -c %U "$file" 2>/dev/null)
+#
+#    # 检查属主是否存在于 /etc/passwd 中
+#		if grep -q "^$owner:" /etc/passwd; then
+#			continue 
+#		else
+#			echo "$file: 存在无属主文件"
+#			nouser=true"
+#		fi
+#	done
+#	if [[ "$nouser" = false ]]; then
+#        echo -e "${GREEN}用例pass${NC}"
+#    else
+#        echo -e "${RED}用例fail${NC}"
+#    fi
+#else
+#	echo -e "${GREEN}用例不涉及：/opt/hihonor 目录不存在${NC}"
+#fi
+#
+# 设置超时时间为300秒
+#TIMEOUT=300
+#
+## 创建一个临时文件
+#tmpfile=$(mktemp)
+#
+## 将文件列表保存到临时文件
+#find /opt/hihonor -type f -print0 > "$tmpfile"
+#
+## 初始化nouser变量
+#nouser=false
+#
+## 使用timeout命令执行while循环
+#timeout $TIMEOUT bash -c '
+#  while IFS= read -r -d "" file; do
+#    # 获取文件的属主
+#    owner=$(stat -c %U "$file" 2>/dev/null)
+#
+#    # 检查属主是否存在于 /etc/passwd 中
+#    if grep -q "^$owner:" /etc/passwd; then
+#      continue 
+#    else
+#      echo "$file: 存在无属主文件"
+#      export nouser=true
+#    fi
+#  done < "'"$tmpfile"'"
+#'
+#
+## 检查timeout命令是否超时
+#if [ $? -eq 124 ]; then
+#  echo "循环在300秒内未完成，继续执行后面的命令。"
+#else
+#  if [[ "$nouser" = false ]]; then
+#    echo "用例pass"
+#  else
+#    echo "用例fail"
+#  fi
+#fi
+#
+## 删除临时文件
+#rm "$tmpfile"
+
+
+
+
+
+
+
+
+
+export nouser=false
+if [[ -d "/opt/hihonor" ]]; then
+  # 创建临时文件
+  tmpfile=$(mktemp)
+
+  # 使用 find 命令将结果写入临时文件
+  timeout 300s find /opt/hihonor -type f -print0 > "$tmpfile"
+
+  # 从临时文件中读取数据进行循环处理
+  while IFS= read -r -d '' file; do
+    # 获取文件的属主
+    owner=$(stat -c %U "$file" 2>/dev/null)
+
+    # 检查属主是否存在于 /etc/passwd 中
+    if grep -q "^$owner:" /etc/passwd; then
+      continue 
+    else
+      echo "$file: 存在无属主文件"
+      nouser=true
+    fi
+  done < "$tmpfile"
+
+  # 删除临时文件
+  rm "$tmpfile"
+
+  if [[ "$nouser" = false ]]; then
+    echo -e "${GREEN}用例pass${NC}"
+  else
+    echo -e "${RED}用例fail${NC}"
+  fi
+else
+  echo -e "${GREEN}用例不涉及：/opt/hihonor 目录不存在${NC}"
+fi
+# 判断测试结果
+#if [[ "$nouser" = true ]] || ([ -d "$home_dir" ] && [ "$(stat -c "%a" "$home_dir")" -gt 750 ]); then
+#	echo -e "${RED}用例fail${NC}"
+#fi
+#if [[ "$nouser" = na ]] && [[ ! -d "$home_dir" ]] ; then
+#	echo -e "${GREEN}用例不涉及${NC}"
+#fi
+#if [[ "$nouser" = false ]] && ([[ ! -d "$home_dir" ]] || [[ "$(stat -c "%a" "$home_dir")" -le 750 ]]); then
+#	echo -e "${GREEN}用例pass${NC}"
+#fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：设置ssh认证方式====="
+#用例中要求有两个：1、禁止用户密码登录  2、禁止root用户登录
+# 脚本只检查是否禁止了用户 root 登录
+if command -v sshd &> /dev/null; then
+	if grep -qE "^\s*[^#]*PermitRootLogin\s+no" /etc/ssh/sshd_config; then
+		echo -e "${GREEN}用例pass${NC}"
+	else
+		echo "允许使用root身份进行ssh登录"
+		echo -e "${RED}用例fail${NC}"
+	fi
+else
+	echo -e "${GREEN}用例不涉及：SSH service is not installed.${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：su root切换用户需要输入密码====="
+su_permission=false
+if command -v su &> /dev/null; then
+	if grep -qE "^\s*[^#]*auth\s+sufficient\s+pam_permit.so" /etc/pam.d/su 2>/dev/null; then
+		echo "所有用户在使用su命令时均不需要输入密码"
+		su_permission=true
+	fi
+	# 检查当前用户是否属于wheel组
+	if id -nG | grep -qw "wheel"; then
+    # 检查/etc/pam.d/su配置文件中是否存在auth sufficient pam_wheel.so trust use_uid
+		if grep -qE "^\s*[^#]*auth\s*sufficient\s*pam_wheel.so trust use_uid" /etc/pam.d/su 2>/dev/null; then
+			echo "wheel组中的用户在使用su命令时无需输入密码"
+			su_permission=true
+		fi
+	else
+		echo "所有用户在使用su命令时均需要输入密码"
+	fi
+else
+	echo "SU is not installed."
+	su_permission=no
+fi
+# 根据条件判断输出结果
+if [[ "$su_permission" = true ]]; then
+	echo -e "${RED}用例fail，请参考用例手动执行相关命令查看${NC}"
+	elif [[ "$su_permission" = no ]]; then
+		echo -e "${GREEN}用例不涉及${NC}"
+else
+	echo -e "${GREEN}用例pass${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：分配最小权限给运行程序的帐号====="
+# result_210=$(ps -ef | grep "java" | grep -v grep| grep -i -E "root|administrator|supervisor" )
+# if [[ -n "$result_210" ]]; then
+	# echo -e "${ORANGE}用例执行结果不确定: 存在以root身份运行的Java进程${NC}"
+	# echo "请手动确认。以下为输出结果":$result_210
+# else
+	# echo -e "${GREEN}用例pass: 不存在以root身份运行的Java进程${NC}"
+# fi
+
+# 获取java进程的PID列表
+#java_pids=$(pgrep java)
+
+# 初始化变量，用于判断是否存在高权限用户或用户组启动的进程
+export has_high_privilege=false
+
+# 遍历java进程(由于容器中不支持ps -p命令，所以使用其他命令代替)
+# for pid in $java_pids; do
+  # uid=$(ps -o user= -p "$pid")
+
+	# if [[ "$uid" == "root" || "$uid" == "administrator" || "$uid" == "Administrator" || "$gid" = "super" || "$gid" = "Super" || "$uid" == "supervisor" || "$uid" == "Supervisor" ]]; then
+	  # echo "进程 $pid 的UID为高权限用户"
+	  # echo "存在高权限用户启动的进程，用例结果需要手动确认"
+	  # has_high_privilege=true
+	# else
+#      获取进程对应的GID
+	  # gid=$(ps -o gid= -p "$pid" | xargs)
+
+#     检查GID是否满足条件
+	  # if [[ "$gid" = "sys" || "$gid" = "root" || "$gid" = "administrator" || "$gid" = "Administrator" || "$gid" = "super" || "$gid" = "Super" || "$uid" == "supervisor" || "$uid" == "Supervisor" ]]; then
+		# echo "进程 $pid 的UID为非低权限，且GID为 $gid"
+		# echo "存在高权限用户组启动的进程，用例结果需要手动确认"
+		# has_high_privilege=true
+	  # else
+		# echo "进程 $pid 的UID为非root，且GID不满足条件"
+		# echo "不存在使用高权限的用户或者用户组启动的进程"
+	  # fi
+	# fi
+# done
+java_uids=$(ps -ef | grep "java" |grep -v grep | awk '{printf "%-8s",$1}')
+for uid in $java_uids; do
+	group_name=$(id -ng "$uid" 2>/dev/null)
+	if [[ "$uid" == "root" || "$uid" == "administrator" || "$uid" == "Administrator" || "$uid" = "super" || "$uid" = "Super" || "$uid" == "supervisor" || "$uid" == "Supervisor" ]]; then
+		has_high_privilege=true
+	elif [[ "$group_name" = "sys" || "$group_name" = "root" || "$group_name" = "administrator" || "$group_name" = "Administrator" || "$group_name" = "super" || "$group_name" = "Super" || "$group_name" == "supervisor" || "$group_name" == "Supervisor" ]]; then
+		has_high_privilege=true
+	else
+		continue
+	fi
+done
+	
+# for pid in $java_pids; do
+  # uid=$(awk '/^Uid:/{print $2}' /proc/$pid/status)
+  # if [ "$uid" = "0" ]; then
+#    输出失败（fail）：进程运行身份为root
+	# echo "fail"
+  # else
+#   获取进程对应的用户名
+	# user=$(awk -F: '$3 == '$uid' {print $1}' /etc/passwd)
+	# group=$(id -gn $user)
+	# if [ "$group" != "root" ]; then
+#      输出通过（pass）：进程非root用户且不在root组中
+	  # echo "pass"
+	# else
+#      输出失败（fail）：进程非root用户但在root组中
+	  # echo "fail"
+	# fi
+  # fi
+# done
+#根据条件判断输出结果
+ if [[ "$has_high_privilege" = true ]]; then
+   echo -e "${ORANGE}存在高权限用户或者用户组启动的进程，用例结果需要手动确认${NC}"
+ else
+   echo -e "${GREEN}用例pass${NC}"
+ fi
+
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：目录和文件分配最小权限  和  用例：存储口令的文件的访问权限控制(不符合要求的只打印前10个)====="
+export has_high_perm=false
+count=0
+#（查看/opt/hihonor目录下所有目录权限）
+for file in $(find /opt/hihonor -type d)
+do
+	perm=$(stat -c %a $file)
+	if [[ "$perm" -gt 750 ]]; then     
+		if [[ $count -lt 10 ]]; then
+			has_high_perm=true
+			echo "目录$file权限超过750"
+			count=$(($count + 1))
+		fi
+		if [[ $count -eq 10 ]]; then
+			break
+		fi
+    fi
+done
+count=0
+#（查看/opt/hihonor目录下所有文件权限）
+for file in $(find /opt/hihonor -type f)
+do
+	perm=$(stat -c %a $file)
+	if [[ "$perm" -gt 640 ]];then
+		if [[ $count -lt 10 ]]; then
+			has_high_perm=true
+			echo "普通文件$file权限超过640"
+			count=$(($count + 1))
+		fi
+		if [[ $count -eq 10 ]]; then
+			break
+		fi    
+	fi
+done
+count=0
+#（查看/opt/hihonor目录下所有程序文件权限）
+for file in $(find /opt/hihonor -type f -name "*.sh" -o -name "*.jar")
+do
+	perm=$(stat -c %a $file)
+	if [[ "$perm" -gt 550 ]];then
+		if [[ $count -lt 10 ]]; then
+			has_high_perm=true
+			echo "程序文件$file权限超过550"
+			count=$(($count + 1))
+		fi
+		if [[ $count -eq 10 ]]; then
+			break
+		fi  
+	fi
+done
+count=0
+#（查看/opt/hihonor目录下密钥或者证书文件权限）
+for file in $(find /opt/hihonor -type f \( -name "*.key" -o -name "*.jks" -o -name "*.cer" -o -name "*.dsa" -o -name "*.crt" -o -name "*.pem" -o -name "*.p12" \))
+do
+	perm=$(stat -c %a $file)
+	if [[ "$perm" -gt 600 ]];then
+		if [[ $count -lt 10 ]]; then
+			has_high_perm=true
+			echo "密钥或证书文件$file权限超过600" 
+			count=$(($count + 1))
+		fi
+		if [[ $count -eq 10 ]]; then
+			break
+		fi
+	fi
+done
+count=0
+#（查看/opt/hihonor目录下归档完成的日志文件权限）
+for file in $(find /opt/hihonor -name "*.log.*" ! -name "*.log.*.current")
+do
+	perm=$(stat -c %a $file)
+	if [[ "$perm" -gt 440 ]];then
+		if [[ $count -lt 10 ]]; then
+			has_high_perm=true
+			echo "归档完成的日志文件$file权限超过440"
+			count=$(($count + 1))
+		fi
+		if [[ $count -eq 10 ]]; then
+			break
+		fi
+	fi
+done
+count=0
+#（查看/opt/hihonor目录下特殊密钥目录rootkey和cert权限）
+for file in $(find /opt/hihonor -type d \( -name "rootkey" -o -name "cert" \))
+do
+	perm=$(stat -c %a $file)
+	if [[ "$perm" -gt 700 ]];then
+		if [[ $count -lt 10 ]]; then
+			has_high_perm=true
+			echo "特殊密钥目录$file权限超过700"
+			count=$(($count + 1))
+		fi
+		if [[ $count -eq 10 ]]; then
+			break
+		fi
+	fi
+done
+count=0
+#（查看/opt/hihonor 目录下特殊密钥文件权限）
+for file in $(find /opt/hihonor -type f -path "*/rootkey/*")
+do
+	perm=$(stat -c %a $file)
+	if [[ "$perm" -gt 600 ]];then
+		if [[ $count -lt 10 ]]; then
+			has_high_perm=true
+			echo "特殊密钥文件$file权限超过600"
+			count=$(($count + 1))
+		fi
+		if [[ $count -eq 10 ]]; then
+			break
+		fi
+	fi
+done
+
+if [[ "$has_high_perm" = true ]];then
+	echo -e "${RED}用例fail${NC}"
+else
+	echo -e "${GREEN}用例pass${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：检查sudo版本漏洞====="
+#检查sudo版本漏洞
+result_212=$(sudoedit -s / 2>&1)
+if command -v sudo >/dev/null;then
+	if [[ "$result_212" == "usage:"* ]]; then
+		echo -e "${GREEN}用例pass${NC}"
+	else
+		echo -e "${RED}用例fail，请参考用例手动执行相关命令查看${NC}"
+	fi
+else
+	echo -e "${GREEN}用例不涉及：sudo is not installed.${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：限制ftp/sftp用户向上跨目录访问，只能访问指定目录下的文件====="
+#检查是否安装了ssh服务，因为sftp是基于ssh协议的，所以必须安装了ssh才可以使用sftp协议
+if command -v sshd >/dev/null;then
+	# 检查是否存在 sftp 用户
+	if id -u sftp >/dev/null 2>&1; then
+		# 存在 sftp 用户
+		echo "sftp user exists"
+  
+		# 检查是否存在 sftp 目录
+		if find / -type d -name "sftp" -print -quit | grep -q .; then
+			# 存在 sftp 目录
+			echo "sftp directory exists"
+	
+			# 检查 sshd_config 中是否匹配了 sftp 用户
+			if grep -qE "^\s*[^#]*Match\s+User\s+sftp$" /etc/ssh/sshd_config  && grep -qE "^\s*[^#]*ChrootDirectory\s+.*/sftp$" /etc/ssh/sshd_config; then
+				# 匹配了 sftp 用户和相对目录
+				echo -e "${GREEN}用例pass${NC}"
+			else
+				# 没有匹配 sftp 用户或相对目录
+				echo -e "${RED}用例fail${NC}"
+			fi
+	
+		else
+		# 不存在 sftp 目录
+		echo -e "${RED}用例fail，请参考用例手动执行相关命令查看${NC}"
+		fi
+  
+	else
+		# 不存在 sftp 用户
+		echo -e "${GREEN}用例pass${NC}"
+	fi
+else
+	echo -e "${GREEN}用例不涉及：SSH服务未安装，无法使用SFTP服务${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：使用单独的操作系统帐号来运行数据库====="
+if ps -ef |grep -v grep|grep -i -E -q "mysql|oracle";then
+	if ps -ef |awk '/mysql/ || /oracle/ {print $1}' |grep -i -q -E "root|administrator|Administrator|super|Super|supervisor|Supervisor";then
+		echo -e "${RED}用例fail，请参考用例手动执行相关命令查看${NC}"
+	else
+		echo -e "${GREEN}用例pass${NC}"
+		fi
+else
+
+	echo -e "${GREEN}用例pass${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：禁止使用SSHv1 协议====="
+if command -v sshd &> /dev/null; then
+	if ssh -o "BatchMode yes" -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null" -v $USER@$HOSTNAME 2>&1 | grep -q -E "protocol\s+version\s+2.0" && ! ssh -o "BatchMode yes" -o "StrictHostKeyChecking no" -o "UserKnownHostsFile /dev/null" -v $USER@$HOSTNAME 2>&1 | grep -i -q -E "cipher:\s*.*cbc";then
+		echo -e "${GREEN}用例pass${NC}"
+
+	else
+		echo -e "${RED}用例fail，请参考用例手动执行相关命令查看${NC}"
+	fi
+else
+	echo -e "${GREEN}用例不涉及: ssh service is not installed.${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：禁止使用SNMPv1/v2和SSHv1.x协议====="
+# 检查SNMP服务是否启用(由于容器中无法使用systemctl命令，使用command命令来替代)
+#snmp_status=$(systemctl is-active snmpd)
+#if [[ $snmp_status == "active" ]]; then
+#    echo "SNMP service is enabled."
+if command -v snmpd &> /dev/null; then
+
+	# 检查SNMP协议版本信息
+	snmp_version=$(grep -Po '(?<=^com2sec ).*public' /etc/snmp/snmpd.conf | grep -o 'default\s+\K\S+')
+
+#    if [[ $snmp_version =~ SNMPv\(1(\.\d+)?|2\) ]]; then (容器中 Bash 版本不支持 [[ 的正则表达式匹配)
+	if echo "$snmp_version" | grep -Eq 'SNMPv(1(\.[0-9]+)?|2)'; then
+		echo -e "${RED}用例fail: SNMP protocol version is $snmp_version.${NC}"
+	else
+		echo -e "${GREEN}用例pass: SNMP protocol version is not SNMPv1, SNMPv2 or SNMPv1.x.${NC}"
+	fi
+else
+	echo -e "${GREEN}用例不涉及: SNMP service is not installed.${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：禁止使用Telnet、FTP、NFS、Samba、RPC、TFTP、r 服务、Netbios、X-Windows协议====="
+service_status=false
+# 检查Telnet服务(由于容器中无法使用systemctl命令，使用command命令来替代)
+# if systemctl list-unit-files | grep -q telnet.socket ; then
+  # echo "Fail: Telnet service is enabled."
+  # service_status=true
+# else
+  # echo "Pass: Telnet service is disabled."
+# fi
+
+if command -v telnet &> /dev/null; then
+	echo "Telnet client is installed." ; 
+	service_status=true
+else
+	echo "Telnet client is not installed."
+fi
+
+# 检查FTP服务
+# if systemctl list-unit-files | grep -q vsftpd ; then
+  # echo "Fail: FTP service is enabled."
+  # service_status=true
+# else
+  # echo "Pass: FTP service is disabled."
+# fi
+if [[ -x "$(command -v vsftpd)" ]]; then
+	echo "VSFTPD server is installed."
+	service_status=true
+else
+	echo "VSFTPD server is not installed."
+fi
+
+# 检查NFS服务
+# if systemctl list-unit-files | grep -q nfs-server ; then
+  # echo "Fail: NFS service is enabled."
+  # service_status=true
+# else
+  # echo "Pass: NFS service is disabled."
+# fi
+if [[ -x "$(command -v nfsd)" ]]; then
+	echo "NFS server is installed."
+	service_status=true
+else
+	echo "NFS server is not installed."
+fi
+
+# 检查Samba服务
+# if systemctl list-unit-files | grep -q smb ; then
+  # echo "Fail: Samba service is enabled."
+  # service_status=true
+# else
+  # echo "Pass: Samba service is disabled."
+# fi
+if [ -x "$(command -v smbd)" ]; then
+	echo "Samba server is installed."
+	service_status=true
+else
+	echo "Samba server is not installed."
+fi
+# 检查RPC服务
+# if systemctl list-unit-files | grep -q rpcbind ; then
+  # echo "Fail: RPC service is enabled."
+  # service_status=true
+# else
+  # echo "Pass: RPC service is disabled."
+# fi
+if [ -x "$(command -v rpcbind)" ]; then
+	echo "RPC server is installed."
+	service_status=true
+else
+	echo "RPC server is not installed."
+fi
+# 检查TFTP服务
+# if systemctl list-unit-files | grep -q tftp ; then
+  # echo "Fail: TFTP service is enabled."
+  # service_status=true
+# else
+  # echo "Pass: TFTP service is disabled."
+# fi
+if [ -x "$(command -v tftpd)" ]; then
+	echo "TFTP server is installed."
+	service_status=true
+else
+	echo "TFTP server is not installed."
+fi
+# 检查r服务
+# if systemctl list-unit-files | grep -q rlogin.socket || systemctl list-unit-files | grep -q rexec.socket || systemctl list-unit-files | grep -q rsh.socket; then
+  # echo "Fail: r service is enabled."
+  # service_status=true
+# else
+  # echo "Pass: r service is disabled."
+# fi
+if [ -x "$(command -v in.rshd)" ]; then
+	echo "RSH server is installed."
+	service_status=true
+else
+	echo "RSH server is not installed."
+fi
+# 检查Netbios服务
+# if systemctl list-unit-files | grep -q nmb ; then
+  # echo "Fail: Netbios service is enabled."
+  # service_status=true
+# else
+  # echo "Pass: Netbios service is disabled."
+# fi
+if [ -x "$(command -v nmbd)" ]; then
+	echo "NetBIOS server is installed."
+	service_status=true
+else
+	echo "NetBIOS server is not installed."
+fi
+# 检查X-Windows服务
+# if systemctl get-default | grep -q graphical.target ; then
+  # echo "Fail: X-Windows service is enabled."
+  # service_status=true
+# else
+  # echo "Pass: X-Windows service is disabled."
+# fi
+if [ -x "$(command -v Xorg)" ]; then
+	echo "X Window server is installed."
+	service_status=true
+else
+	echo "X Window server is not installed."
+fi
+# 根据条件判断输出结果
+if [[ "$service_status" = true ]]; then
+	echo -e "${RED}用例fail${NC}"
+else
+	echo -e "${GREEN}用例pass${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：SNMP v3须配置鉴权密码和加密密码 和 用例：SNMPv3协议，对MIB的访问授权应该最小化====="
+# 检查是否已使用SNMPv3服务(由于容器中无法使用systemctl命令，使用command命令来替代)
+# snmp_status=$(systemctl is-active snmpd)
+
+# if [[ $snmp_status == "active" ]]; then
+	# echo "SNMP service is enabled."
+if command -v snmpd &> /dev/null; then
+	# 检查SNMP协议版本信息
+	snmp_version=$(grep -Po '(?<=^com2sec ).*public' /etc/snmp/snmpd.conf | grep -o 'default\s+\K\S+')
+  if [[ $snmp_version == *"SNMPv3"* ]]; then
+		echo -e "${ORANGE}需要手动确认用例涉及的检查项: SNMP protocol version is $snmp_version.${NC}"
+	else
+		echo -e "${GREEN}用例不涉及: SNMP protocol version is not SNMPv3${NC}"
+	fi
+else
+	echo -e "${GREEN}用例不涉及: SNMP service is not installed.${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始 用例：协议超时机制检查（/etc/ssh/sshd_config和/etc/profile中只要有一个配置了即可）====="
+time_out=true
+# 判断是否存在SSH服务
+if command -v sshd &>/dev/null; then
+# 检查 /etc/ssh/sshd_config 文件是否存在 ClientAliveInterval 或 ClientAliveCountMax 配置
+	if grep -qE '^\s*[^#]*ClientAliveInterval' /etc/ssh/sshd_config; then
+		echo "Pass: /etc/ssh/sshd_config中SSH连接超时机制已配置"
+		time_out=false
+	else
+		echo "/etc/ssh/sshd_config中SSH连接超时机制未配置"
+	fi
+else
+	echo "SSH service is not installed."
+	time_out=na
+fi
+# 检查 /etc/profile 文件是否存在 TMOUT 变量定义
+if grep -q "^\s*[^#]*TMOUT=" /etc/profile; then
+	echo "Pass: /etc/profile中Shell连接超时机制已配置"
+	time_out=false
+else
+	echo "/etc/profile中Shell连接超时机制未配置"
+fi
+
+# 根据条件判断输出结果
+if [[ "$time_out" = true ]]; then
+	echo -e "${RED}用例fail${NC}"
+	elif [[ "$time_out" = na ]]; then
+		echo -e "${GREEN}用例不涉及${NC}"
+else
+	echo -e "${GREEN}用例pass${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo "=====检查项开始：配置文件中敏感信息检查。检查结果生成到当前目录的tmp_result.txt文件中，请执行：  grep -E \"phone|email|passwd|password|token|hwid|cert|secret|key|pwd\" tmp_result.txt | awk '{ gsub(/(phone|email|passwd|password|token|hwid|cert|secret|key|pwd)/, \"\033[31m&\033[0m\"); print }'  命令手动排查结果====="
+
+
+# 执行 find 命令，并将结果重定向到 result.txt 文件
+#find / -path /proc -prune -o -type f \( -name "*.json" -o -name "*.xml" -o -name "*.properties" -o -name "*.yml" \) -exec grep -Ei "phone|email|passwd|password|token|hwid|cert|secret|key|pwd" {} + > tmp_result.txt
+
+# 检查 result.txt 文件是否为空
+#if [[ -s tmp_result.txt ]]; then
+#  echo -e "${ORANGE}请手动确认result.txt文件中的结果,确认是否存在问题${NC}"
+#else
+#  echo -e "${GREEN}用例pass${NC}"
+#fi
+
+#echo -e "=====检查项结束=====\n\n"
+
+# 文件查找并检测敏感信息
+( find / -path /proc -prune -o -type f \( -name "*.json" -o -name "*.xml" -o -name "*.properties" -o -name "*.yml" \) -exec grep -Ei "phone|email|passwd|password|token|hwid|cert|secret|key|pwd" {} + > tmp_result.txt ) &
+pid=$!
+
+# 在后台开始一个定时器，180秒后尝试结束find命令
+( sleep 120; kill $pid 2>/dev/null && echo "查找操作超时，已停止。" ) &
+
+# 等待 find 命令结束
+wait $pid
+
+# 检查 result.txt 文件是否为空
+if [[ -s tmp_result.txt ]]; then
+  echo -e "${ORANGE}请手动确认result.txt文件中的结果,确认是否存在问题${NC}"
+else
+  echo -e "${GREEN}用例pass${NC}"
+fi
+
+echo -e "=====检查项结束=====\n\n"
+
+
+
+echo "=====检查项开始：查看jks/cer/crt/pem证书中是否存在huawei敏感词====="
+# 初始化变量，用于判断是否存在高权限用户或用户组启动的进程
+export has_senstive=false
+
+# 找到所有的jks证书
+jks_files=$(find /opt/ -name '*.jks')
+
+# 找到keytool所在路径
+keytool_path=$(find /usr/ -name keytool | head -n 1)
+
+# 通过keytool检查每个jks文件
+for jks in $jks_files
+do
+    # 使用keytool查看证书内容，并检查是否包含'huawei'关键字（不区分大小写）
+    # 使用echo提供密码给keytool命令
+    # 将匹配的内容保存到变量matches中
+    matches=$(echo | $keytool_path -v -list -keystore "$jks" 2>&1 | egrep -i 'huawei')
+
+    # 检查matches是否为空，如果不为空则说明找到了匹配的内容
+    if [[ -n "$matches" ]]; then
+        echo -e "${RED}证书 $jks 中存在敏感信息${NC}"
+        # 输出匹配的内容，使用awk为匹配到的关键词添加颜色
+        echo "$matches" | awk -v red="$RED" -v nc="$NC" '{
+        gsub(/huawei/, red "&" nc)
+        print
+        }'
+        echo -e "\n\n"
+        has_sensitive=true
+    fi
+done
+
+
+#找到所有的cer证书
+cer_files=$(find /opt/ -name *.cer)
+
+for cer in $cer_files
+do
+    # 使用keytool查看证书内容，并检查是否包含'huawei'关键字（不区分大小写）
+    # 使用echo提供密码给keytool命令
+    # 将匹配的内容保存到变量matches中
+    matches=$(echo | $keytool_path -v -list -keystore "$cer" 2>&1 | egrep -i 'huawei')
+
+    # 检查matches是否为空，如果不为空则说明找到了匹配的内容
+    if [[ -n "$matches" ]]; then
+        echo -e "${RED}证书 $cer 中存在敏感信息${NC}"
+        # 输出匹配的内容，使用awk为匹配到的关键词添加颜色
+        echo "$matches" | awk -v red="$RED" -v nc="$NC" '{
+        gsub(/huawei/, red "&" nc)
+        print
+        }'
+        echo -e "\n\n"
+        has_sensitive=true
+    fi
+done
+
+
+#找到所有的crt证书
+crt_files=$(find /opt/ -name *.crt)
+
+for crt in $crt_files
+do
+    # 使用keytool查看证书内容，并检查是否包含'huawei'关键字（不区分大小写）
+    # 使用echo提供密码给keytool命令
+    # 将匹配的内容保存到变量matches中
+    matches=$(echo | $keytool_path -v -list -keystore "$crt" 2>&1 | egrep -i 'huawei')
+
+    # 检查matches是否为空，如果不为空则说明找到了匹配的内容
+    if [[ -n "$matches" ]]; then
+        echo -e "${RED}证书 $crt 中存在敏感信息${NC}"
+        # 输出匹配的内容，使用awk为匹配到的关键词添加颜色
+        echo "$matches" | awk -v red="$RED" -v nc="$NC" '{
+        gsub(/huawei/, red "&" nc)
+        print
+        }'
+        echo -e "\n\n"
+        has_sensitive=true
+    fi
+done
+
+
+#找到所有的pem证书
+pem_files=$(find /opt/ -name *.pem)
+
+for pem in $pem_files
+do
+    # 使用keytool查看证书内容，并检查是否包含'huawei'关键字（不区分大小写）
+    # 使用echo提供密码给keytool命令
+    # 将匹配的内容保存到变量matches中
+    matches=$(echo | $keytool_path -v -list -keystore "$pem" 2>&1 | egrep -i 'huawei')
+
+    # 检查matches是否为空，如果不为空则说明找到了匹配的内容
+    if [[ -n "$matches" ]]; then
+        echo -e "${RED}证书 $pem 中存在敏感信息${NC}"
+        # 输出匹配的内容，使用awk为匹配到的关键词添加颜色
+        echo "$matches" | awk -v red="$RED" -v nc="$NC" '{
+        gsub(/huawei/, red "&" nc)
+        print
+        }'
+        echo -e "\n\n"
+        has_sensitive=true
+    fi
+done
+
+if [[ "$has_sensitive" = true ]];then
+	echo -e "${RED}用例fail${NC}"
+else
+	echo -e "${GREEN}用例pass${NC}"
+fi
+echo -e "=====检查项结束=====\n\n"
+
+
+echo -e "=====检查项开始：查看容器service的暴露方式是否是nodeport方式，====="
+echo -e "${RED}该条用例是针对容器化部署的产品，并且需要在宿主机上针对该检查项执行脚本。对于非容器化部署的产品不用关注用例执行结果${NC}"
+
+#定义一个初始标志位
+export should_skip=false
+#判断当前环境是在容器内还是在宿主机上
+if grep -qE '(docker|kubepods)' /proc/1/cgroup; then
+    echo "Running inside a container"
+	should_skip=true
+else
+    echo "Running on the host machine"
+fi
+#如果环境是宿主机的话就执行下面三条用例，否则跳过下面三条用例
+if [ "$should_skip" = false ];then 
+# 检查必要的文件是否存在
+if [ ! -f "/root/.kube/config" ] && [ ! -f "/etc/kubernetes/kubelet-kubeconfig" ]; then
+    echo -e "${GREEN}用例不涉及${NC}"
+else
+    # 第一步：备份原始 config 文件
+    if [ -f "/root/.kube/config" ]; then
+        mv /root/.kube/config /root/.kube/config.bak
+    fi
+
+    # 第二步：复制 kubelet-kubeconfig 文件到指定位置并重命名为 config
+    if [ -f "/etc/kubernetes/kubelet-kubeconfig" ]; then
+        cp /etc/kubernetes/kubelet-kubeconfig /root/.kube/config
+    fi
+
+    # 第三步：检查服务获取 NodePort 信息
+    if [ -f "/root/.kube/config" ]; then
+        result=$(kubectl get services | awk '{print $2}')
+        if echo "$result" | grep -q "NodePort"; then
+            kubectl get services
+            echo -e "${RED}用例fail${NC}"
+        else
+            echo -e "${GREEN}用例pass${NC}"
+        fi
+    fi
+
+    # 第四步：恢复原始配置
+    if [ -f "/root/.kube/config.bak" ]; then
+        rm /root/.kube/config
+        mv /root/.kube/config.bak /root/.kube/config
+    fi
+fi
+
+echo -e "=====检查项结束=====\n\n"
+fi
+
+echo -e "=====检查项开始：检查容器的环境变量中是否存在明文的密码或者密钥。====="
+echo -e "${RED}该条用例是针对容器化部署的产品，并且需要在宿主机上针对该检查项执行脚本。对于非容器化部署的产品不用关注用例执行结果${NC}"
+
+if [ "$should_skip" = false ];then 
+# 初始化一个标志变量
+#export sensitive_info_found=false
+
+temp_file=$(mktemp)
+
+# 检查 docker 和 crictl 的支持
+# 执行命令并保存输出
+docker_output=$(docker ps | grep -v 'CONTAINER ID' | awk '{if(NR>1) print $1}')
+crictl_output=$(crictl ps | grep -v 'CONTAINER ID' | awk '{if(NR>1) print $1}')
+
+# 检查docker输出是否包含容器ID
+if [ -n "$docker_output" ]; then
+    echo "使用 Docker."
+    container_cmd="docker"
+	list_cmd="docker ps | grep -v -iE 'POD|proxy|agent'"
+elif [ -n "$crictl_output" ]; then
+    echo "使用 crictl."
+    container_cmd="crictl"
+    list_cmd="crictl ps | grep -v -iE 'proxy|agent'"
+else
+    echo "非容器化部署不涉及."
+fi
+
+# 列出所有容器并获取ID和名称
+#containers=$($list_cmd)
+containers=$(eval "$list_cmd")
+#while IFS= read -r container; do
+#    container_id=$(echo $container | awk '{print $1}')
+#    container_name=$(echo $container | awk '{print $7}')
+#
+#    if [ "$container_cmd" == "docker" ]; then
+#        inspect_output=$(docker inspect $container_id)
+#    else
+#        inspect_output=$(crictl inspect $container_id)
+#    fi
+#
+#    # 匹配并检查没有加密标志的password、pwd、secret相关行
+#    echo "$inspect_output" | grep -E 'password=|pwd=|secret=' | while read line; do
+#    if ! echo "$line" | grep -iq 'AES\|ENC\|RSA'; then
+#        echo "Unencrypted line: $line"
+#		sensitive_info_found=true
+#    fi
+#	done
+#	#匹配JSON格式中的key和value，并检查value是否有加密标志
+#	echo "$inspect_output" | grep -oE '"key":"[^"]*"' | grep -i 'password\|pwd\|secret' | while read key_line; do
+#    key=$(echo $key_line | grep -oE '"[^"]+"$')
+#    value=$(echo "$data" | grep -A 1 "$key_line" | grep '"value"' | cut -d: -f2- | tr -d '"}')
+#    if ! echo "$value" | grep -iq 'AES\|ENC\|RSA'; then
+#        echo "Unencrypted line:Key: ${key}, Value: ${value}"
+#		sensitive_info_found=true
+#    fi
+#	done
+##tail -n +2防止执行docker ps或者crictl ps输出内容第一行标题引发错误
+#done <<< "$(echo "$containers" | tail -n +2)"
+# 使用 echo 输出变量内容，并通过管道传递给 while 循环
+echo "$containers" | tail -n +2 | while IFS= read -r container
+do
+  container_id=$(echo "$container" | awk '{print $1}')
+  container_name=$(echo "$container" | awk '{print $7}')
+
+  if [ "$container_cmd" == "docker" ]; then
+      inspect_output=$(docker inspect $container_id)
+  else
+      inspect_output=$(crictl inspect $container_id)
+  fi
+
+  # 匹配并检查没有加密标志的password、pwd、secret相关行
+  echo "$inspect_output" | grep -E 'password=|pwd=|secret=' | while read line; do
+      if ! echo "$line" | grep -iq 'AES\|ENC\|RSA'; then
+          echo "Unencrypted line: $line"
+          #sensitive_info_found=true
+		  echo "1" > "$temp_file"
+      fi
+  done
+
+  # 匹配JSON格式中的key和value，并检查value是否有加密标志
+  echo "$inspect_output" | grep -oE '"key":"[^"]*"' | grep -i 'password\|pwd\|secret' | while read key_line; do
+      key=$(echo $key_line | grep -oE '"[^"]+"$')
+      value=$(echo "$inspect_output" | grep -A 1 "$key_line" | grep '"value"' | cut -d: -f2- | tr -d '"}')
+      if ! echo "$value" | grep -iq 'AES\|ENC\|RSA'; then
+          echo "Unencrypted line: Key: ${key}, Value: ${value}"
+          #sensitive_info_found=true
+		  echo "1" > "$temp_file"
+      fi
+  done
+done
+
+#if [[ "$sensitive_info_found" = true ]];then
+if [ -s "$temp_file" ]; then
+	echo -e "${RED}用例fail${NC}"
+else
+	echo -e "${GREEN}用例pass${NC}"
+fi
+# 清理临时文件
+rm "$temp_file"
+echo -e "=====检查项结束=====\n\n"
+
+fi
+
+
+echo -e "=====检查项开始：检查宿主机上各个容器是否是特权容器。====="
+echo -e "${RED}该条用例是针对容器化部署的产品，并且需要在宿主机上针对该检查项执行脚本。对于非容器化部署的产品不用关注用例执行结果${NC}"
+
+
+if [ "$should_skip" = false ];then 
+# 初始化一个标志变量
+#export privileged_found=false
+# 在脚本开始处创建一个临时文件
+temp_file=$(mktemp)
+
+# 检查 docker 和 crictl 的支持
+# 执行命令并保存输出
+docker_output=$(docker ps | grep -v 'CONTAINER ID' | awk '{if(NR>1) print $1}')
+crictl_output=$(crictl ps | grep -v 'CONTAINER ID' | awk '{if(NR>1) print $1}')
+
+# 检查docker输出是否包含容器ID
+if [ -n "$docker_output" ]; then
+    echo "使用 Docker."
+    container_cmd="docker"
+	list_cmd="docker ps | grep -v -iE 'POD|proxy|agent'"
+elif [ -n "$crictl_output" ]; then
+    echo "使用 crictl."
+    container_cmd="crictl"
+    list_cmd="crictl ps | grep -v -iE 'proxy|agent'"
+else
+    echo "非容器化部署不涉及."
+fi
+
+# 列出所有容器并获取ID和名称
+#containers=$($list_cmd)
+containers=$(eval "$list_cmd")
+
+# 检查每个容器的敏感信息
+#while IFS= read -r container; do
+#    container_id=$(echo $container | awk '{print $1}')
+#    container_name=$(echo $container | awk '{print $7}')
+#
+#    if [ "$container_cmd" == "docker" ]; then
+#        inspect_output=$(docker inspect $container_id)
+#    else
+#        inspect_output=$(crictl inspect $container_id)
+#    fi
+#
+#    # 检查是否以特权模式运行
+#    if echo "$inspect_output" | grep -iq '"Privileged": true'; then
+#        echo "特权容器: ID=$container_id, 名称=$container_name"
+#		privileged_found=true
+#    fi
+#done <<< "$(echo "$containers" | tail -n +2)"
+echo "$containers" | tail -n +2 | while IFS= read -r container
+do
+  container_id=$(echo "$container" | awk '{print $1}')
+
+  # 根据不同的容器命令选择不同的列来获取容器名称
+  if [ "$container_cmd" == "docker" ]; then
+    container_name=$(echo "$container" | awk '{print $NF}')
+    inspect_output=$(docker inspect $container_id)
+  else  # 假设为crictl
+    container_name=$(echo "$container" | awk '{print $7}')
+    inspect_output=$(crictl inspect $container_id)
+  fi
+  # 检查是否以特权模式运行
+    if echo "$inspect_output" | grep -iq '"Privileged": true'; then
+        echo "特权容器: ID=$container_id, 名称=$container_name"
+		#privileged_found=true
+		echo "1" > "$temp_file"
+    fi
+done
+#if [[ "$privileged_found" = true ]];then
+if [ -s "$temp_file" ]; then
+	echo -e "${RED}用例fail${NC}"
+else
+	echo -e "${GREEN}用例pass${NC}"
+fi
+# 清理临时文件
+rm "$temp_file"
+echo -e "=====检查项结束=====\n\n"
+
+fi
+
+echo -e "=====检查项开始：查看busybox指令集中是否存在nc/netcat/tcpdump/objdump嗅探工具====="
+
+
+# 检查是否安装了busybox
+if ! command -v busybox &>/dev/null; then
+  echo -e "${GREEN}不存在busybox指令集，用例不涉及${NC}"
+else
+  # 要检查的命令列表
+  commands='nc netcat tcpdump objdump'
+
+  # 检查命令是否存在
+  found_tools=''
+  for cmd in $commands; do
+    if busybox --list | grep -qw "$cmd"; then
+      found_tools="${found_tools}${cmd} "
+    fi
+  done
+
+  # 输出结果
+  if [ -n "$found_tools" ]; then
+    echo -e "${RED}用例fail: \n查询存在嗅探工具:${found_tools}${NC}"
+  else
+    echo -e "${GREEN}用例pass: 不存在嗅探工具${NC}"
+  fi
+fi
+
+echo -e "=====检查项结束=====\n\n"
+
+echo "脚本执行完成"
